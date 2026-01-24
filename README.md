@@ -1,33 +1,47 @@
-# Discord Quest Runner
+# QUEST AUTOMATION
 
-Advanced tool to automatically complete Discord Quests and claim rewards.
+Advanced minimalist suite for Discord automation, providing secure quest rewards claiming and message cleanup protocols.
 
-This project uses a .NET MAUI application to communicate with the Discord client (via WebSocket), simulating the necessary actions to complete quests (playing games, watching streams) and automatically claiming rewards.
+This project is a high-performance .NET MAUI application that interfaces with the Discord client via the WebSocket Debug protocol. It enables safe, real-time script injection within a distraction-free, black-and-white workspace.
 
 ## Features
 
-- **Full Automation**: Automatically completes Game and Streaming missions.
-- **Auto-Claim**: Automatically claims rewards upon quest completion.
-- **Injection**: Uses Discord's Debug protocol to execute safe scripts.
+### Quest Runner
+- Full Automation: Handles Game and Streaming missions without manual intervention.
+- Secure Claiming: Automatically secures rewards upon successful quest completion.
+- CDP Injection: Uses the standard Discord Debug protocol for stable execution.
+
+### Message Deleter
+- Granular Purge: Target specific users within any channel for thorough cleanup.
+- Responsive Logic: Double-confirmation workflow (Count then Purge) ensures data safety.
+- Real-time Stream: Monitoring console provides instant feedback for every neutralized message.
+- Emergency Abort: Immediate halt functionality to terminate operations mid-process.
 
 ## Interface
 
-![Discord Quest Runner Interface](DiscordQuestRunner/interfazea.png)
+### Quest Runner
+![Quest Runner Interface](DiscordQuestRunner/questpage.png)
 
-## How to Use
+### Message Deleter
+![Message Deleter Interface](DiscordQuestRunner/deletionpage.png)
 
-1. Open the **DiscordQuestRunner** application.
-2. Click the **"EXECUTE INJECTION"** button.
-3. The app will detect Discord. If necessary, it will prompt to restart Discord in Debug mode (accept the prompt).
-4. Once the script is injected, it will automatically start finding quests, completing them, and claiming rewards.
-5. Follow the progress via the logs in the application.
+## Guide
 
-## Requirements
+1. Launch the application workspace (dotnet run -f net9.0-windows10.0.19041.0) - NOT PUBLISHED YET.
+2. Choose your protocol from the main dashboard.
+3. For Automated Quests, click "RUN AUTOMATION".
+4. For Message Cleanup, input the target IDs and click "START PURGE".
+5. Confirm the system's request to interface with Discord via Debug mode if prompted.
+6. Monitor the operational stream via the real-time terminal window.
 
-- Windows 10/11
-- Discord Desktop Application
+## System Requirements
 
-## Development
+- Windows 10 or 11 (64-bit)
+- Discord Desktop Application (Official Build)
 
-Developed using C# and .NET MAUI.
-The logic script is written in JavaScript and executed within the Discord context.
+## Technical Stack
+
+- Backend: C# / .NET MAUI
+- Logic: JavaScript (Chrome DevTools Protocol execution)
+- Interface: XAML / Minimalist Vector Design
+- Connection: Local WebSocket Tunnel (Discord Debug Bridge)
