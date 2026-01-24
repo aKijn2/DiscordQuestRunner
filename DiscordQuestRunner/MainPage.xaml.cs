@@ -7,7 +7,7 @@ namespace DiscordQuestRunner
 {
     public partial class MainPage : ContentPage
     {
-        // WebSocket komunikaziorako JSON ereduak
+        // JSON models for WebSocket communication
         private class CdpResponse
         {
             public string? webSocketDebuggerUrl { get; set; }
@@ -26,8 +26,8 @@ namespace DiscordQuestRunner
             public bool awaitPromise { get; set; }
         }
 
-        // Script luzea
-const string DiscordScript = """
+        // Automation script
+        const string DiscordScript = """
 (async function() {
     let internalLog = "";
     // Redirect console.log
@@ -67,18 +67,18 @@ const string DiscordScript = """
         // 2. CLAIM HELPER
         const claimQuest = async (quest) => {
             const questName = quest.config.messages.questName;
-            log(`🎁 Claiming reward for: ${questName}...`);
+            log(`Claiming reward for: ${questName}...`);
             try {
                 await api.post({
                     url: `/quests/${quest.id}/claim-reward`,
                     body: { platform: 0, location: 11, is_targeted: false, metadata_raw: null, metadata_sealed: null }
                 });
-                log(`✅ REWARD CLAIMED: ${questName}`);
+                log(`REWARD CLAIMED: ${questName}`);
             } catch(e) {
                 if(e.body && (e.body.code === 50035 || e.body.captcha_key)) {
-                    log(`⚠️ CAPTCHA REQUIRED for ${questName}. (Manual action needed)`);
+                    log(`CAPTCHA REQUIRED for ${questName}. (Manual action needed)`);
                 } else {
-                    log(`❌ Claim failed: ${e.message}`);
+                    log(`Claim failed: ${e.message}`);
                 }
             }
         };
@@ -164,11 +164,7 @@ const string DiscordScript = """
             InitializeComponent();
         }
         
-        private async void OnCopyClicked(object sender, EventArgs e)
-        {
-            await Clipboard.SetTextAsync(StatusLbl.Text);
-            await DisplayAlert("SYSTEM", "Output log copied to clipboard.", "OK");
-        }
+
 
         private async void OnRunClicked(object sender, EventArgs e)
         {
@@ -176,12 +172,12 @@ const string DiscordScript = """
             try
             {
                 // Helper log function
-                void Log(string msg) => StatusLbl.Text += $"\n> {msg}";
+                void Log(string msg) => StatusLbl.Text += $"\n{msg}";
 
-                StatusLbl.Text = "> Initializing sequence...";
+                StatusLbl.Text = "Initializing sequence...";
                 Log("Checking Discord process...");
 
-                // 1. Aurkitu Discord prozesua eta argumentuak egiaztatu
+                // 1. Find Discord process and verify arguments
                 Process[] processes = Process.GetProcessesByName("Discord");
                 bool needsRestart = false;
 
@@ -192,7 +188,7 @@ const string DiscordScript = """
                 }
                 else
                 {
-                     // Debug portua egiaztatu
+                     // Verify debug port
                      try 
                      {
                          using (var client = new HttpClient())
@@ -213,11 +209,11 @@ const string DiscordScript = """
                 if (needsRestart)
                 {
                     Log("INITIATING RESTART PROTOCOL...");
-                    bool answer = await DisplayAlert("SYSTEM ALERT", "Discord must be restarted in DEBUG_MODE. Proceed?", "[ YES ]", "[ NO ]");
+                    bool answer = await DisplayAlert("System Alert", "Discord must be restarted in Debug Mode. Proceed?", "Yes", "No");
                     
                     if (!answer) 
                     {
-                        Log("ABORTED BY USER.");
+                        Log("Aborted by user.");
                         return;
                     }
 
@@ -242,7 +238,7 @@ const string DiscordScript = """
 
                 Log("Acquiring WebSocket URL...");
 
-                // 2. Lortu WebSocket URL-a
+                // 2. Get WebSocket URL
                 string wsUrl = "";
                 using (var client = new HttpClient())
                 {
@@ -264,7 +260,7 @@ const string DiscordScript = """
 
                 Log("Injecting payload...");
 
-                // 3. Konektatu eta exekutatu
+                // 3. Connect and execute
                 using (var ws = new ClientWebSocket())
                 {
                     await ws.ConnectAsync(new Uri(wsUrl), CancellationToken.None);
@@ -276,7 +272,7 @@ const string DiscordScript = """
                         @params = new CdpParamsParams
                         {
                             expression = DiscordScript,
-                            awaitPromise = true // BEHARREZKOA ASYNC INSERT PROZESUARAKO
+                            awaitPromise = true // REQUIRED FOR ASYNC INSERT PROCESS
                         }
                     };
 
@@ -285,7 +281,7 @@ const string DiscordScript = """
                     
                     await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
                     
-                    // Erantzuna jaso eta prozesatu
+                    // Receive and process response
                     var buffer = new byte[1024 * 64]; 
                     
                     while(ws.State == WebSocketState.Open) {
@@ -315,11 +311,11 @@ const string DiscordScript = """
             }
             catch (Exception ex)
             {
-                await DisplayAlert("SYSTEM_FAILURE", ex.Message, "OK");
-                StatusLbl.Text += $"\n> CRITICAL FAILURE: {ex.Message}";
+                await DisplayAlert("System Failure", ex.Message, "OK");
+                StatusLbl.Text += $"\nCRITICAL FAILURE: {ex.Message}";
             }
 #else
-            await DisplayAlert("Errorea", "Automatizazio hau Windows-en bakarrik dabil.", "Ados");
+            await DisplayAlert("Error", "This automation only works on Windows.", "OK");
 #endif
         }
     }
