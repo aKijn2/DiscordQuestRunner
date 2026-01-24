@@ -1,0 +1,11 @@
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.ide
+[Dd]ebug/
+[Rr]elease/
+*.dll
+*.pdb
+*.cache
