@@ -11,13 +11,13 @@
         {
             var window = new Window(new MainPage());
             
-            const int newWidth = 600;
-            const int newHeight = 450;
+            const int defaultWidth = 500;
+            const int defaultHeight = 700;
 
-            window.Width = newWidth;
-            window.Height = newHeight;
-            window.MinimumWidth = newWidth;
-            window.MinimumHeight = newHeight;
+            window.Width = defaultWidth;
+            window.Height = defaultHeight;
+            window.MinimumWidth = 400;
+            window.MinimumHeight = 500;
             
             return window;
         }

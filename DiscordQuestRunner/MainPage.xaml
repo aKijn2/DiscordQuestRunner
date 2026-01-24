@@ -1,52 +1,98 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="DiscordQuestRunner.MainPage"
-             BackgroundColor="#1F2937"> <!-- Dark Slate Gray -->
+﻿<ContentPage
+    x:Class="DiscordQuestRunner.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="White">
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="25" RowSpacing="20">
-        
-        <!-- Header -->
-        <VerticalStackLayout Grid.Row="0" Spacing="5">
-            <Label Text="Discord Quest Runner"
-                   TextColor="White"
-                   FontSize="24"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center" />
-            
-            <Label Text="Automated Protocol V1.0"
-                   TextColor="#9CA3AF"
-                   FontSize="14"
-                   HorizontalOptions="Center" />
+    <ContentPage.Resources>
+        <Style TargetType="Button">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HeightRequest" Value="50" />
+            <Setter Property="BorderWidth" Value="1.5" />
+            <Setter Property="BorderColor" Value="Black" />
+        </Style>
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="PlaceholderColor" Value="#757575" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="30" RowDefinitions="Auto,*,Auto" RowSpacing="20">
+
+        <!--  Minimalist Header  -->
+        <VerticalStackLayout Grid.Row="0" Spacing="5" HorizontalOptions="Start">
+            <Label
+                FontAttributes="Bold"
+                FontSize="24"
+                Text="QUEST AUTOMATION"
+                TextColor="Black" 
+                CharacterSpacing="1"/>
+            <Label
+                FontSize="11"
+                Text="PROTOCOL V1.0"
+                TextColor="#666666" 
+                CharacterSpacing="2"/>
+            <BoxView HeightRequest="2" WidthRequest="30" BackgroundColor="Black" HorizontalOptions="Start" Margin="0,5,0,0"/>
         </VerticalStackLayout>
 
-        <!-- Status / Output Area -->
-        <Border Grid.Row="1" 
-                Stroke="#374151"
-                StrokeThickness="1"
-                StrokeShape="RoundRectangle 10"
-                BackgroundColor="#111827"
-                Padding="15">
-            <ScrollView>
-                <Label x:Name="StatusLbl" 
-                       Text="Ready to initialize..."
-                       TextColor="#E5E7EB"
-                       FontSize="13"
-                       LineHeight="1.5" />
-            </ScrollView>
+        <!--  Monochrome Status Area  -->
+        <Border
+            Grid.Row="1"
+            Padding="15"
+            BackgroundColor="White"
+            Stroke="Black"
+            StrokeShape="Rectangle"
+            StrokeThickness="1.5">
+            <Grid RowDefinitions="*,Auto">
+                <ScrollView x:Name="LogScroll" Grid.Row="0">
+                    <Label
+                        x:Name="StatusLbl"
+                        FontSize="11"
+                        FontFamily="Consolas"
+                        LineHeight="1.4"
+                        Text="SYSTEM INITIALIZING..."
+                        TextColor="Black" />
+                </ScrollView>
+                
+                <Button
+                    Grid.Row="1"
+                    Text="COPY LOG"
+                    Clicked="OnCopyLogClicked"
+                    BackgroundColor="White"
+                    TextColor="Black"
+                    FontSize="10"
+                    HeightRequest="26"
+                    WidthRequest="100"
+                    HorizontalOptions="End"
+                    Margin="0,10,0,0"
+                    BorderWidth="1"
+                    Padding="0" />
+            </Grid>
         </Border>
 
-        <!-- Action Button (Removed Copy Button) -->
-        <Button Grid.Row="2"
+        <!--  Action Deck  -->
+        <VerticalStackLayout Grid.Row="2" Spacing="12">
+            <Button
                 x:Name="RunBtn"
-                Text="Execute Automation"
+                BackgroundColor="Black"
                 Clicked="OnRunClicked"
-                BackgroundColor="#3B82F6"
-                TextColor="White"
-                FontAttributes="Bold"
-                FontSize="16"
-                HeightRequest="50"
-                CornerRadius="8"
-                Shadow="{Shadow Brush=Black, Offset='0,4', Opacity=0.2}"/>
+                Text="RUN AUTOMATION"
+                TextColor="White" />
 
+            <Button
+                BackgroundColor="White"
+                Clicked="OnOpenDeleterClicked"
+                Text="MESSAGE DELETER"
+                TextColor="Black" />
+            
+            <Label
+                FontSize="9"
+                HorizontalOptions="Center"
+                Text="CDP INTERFACE ACTIVE"
+                TextColor="#999999"
+                Margin="0,5,0,0" />
+        </VerticalStackLayout>
     </Grid>
 </ContentPage>

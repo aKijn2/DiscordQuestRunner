@@ -164,7 +164,29 @@ namespace DiscordQuestRunner
             InitializeComponent();
         }
         
+        private void OnOpenDeleterClicked(object sender, EventArgs e)
+        {
+#if WINDOWS
+            var deleterWindow = new Window
+            {
+                Page = new Pages.DeleterPage(),
+                Title = "Discord Message Deleter",
+                Width = 550,
+                Height = 650,
+                MinimumWidth = 450,
+                MinimumHeight = 550
+            };
+            Application.Current?.OpenWindow(deleterWindow);
+#else
+            DisplayAlert("Error", "This feature only works on Windows.", "OK");
+#endif
+        }
 
+        private async void OnCopyLogClicked(object sender, EventArgs e)
+        {
+            await Clipboard.SetTextAsync(StatusLbl.Text);
+            await DisplayAlert("Copied", "Log copied to clipboard.", "OK");
+        }
 
         private async void OnRunClicked(object sender, EventArgs e)
         {
@@ -172,7 +194,11 @@ namespace DiscordQuestRunner
             try
             {
                 // Helper log function
-                void Log(string msg) => StatusLbl.Text += $"\n{msg}";
+                void Log(string msg) => MainThread.BeginInvokeOnMainThread(() => 
+                {
+                    StatusLbl.Text += $"\n{msg}";
+                    LogScroll.ScrollToAsync(StatusLbl, ScrollToPosition.End, true);
+                });
 
                 StatusLbl.Text = "Initializing sequence...";
                 Log("Checking Discord process...");

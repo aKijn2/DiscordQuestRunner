@@ -1,0 +1,155 @@
+<ContentPage
+    x:Class="DiscordQuestRunner.Pages.DeleterPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Deleter Protocol"
+    BackgroundColor="White">
+
+    <ContentPage.Resources>
+        <Style TargetType="Button">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="BorderWidth" Value="1.5" />
+            <Setter Property="BorderColor" Value="Black" />
+        </Style>
+        <Style TargetType="Entry">
+            <Setter Property="TextColor" Value="Black" />
+            <Setter Property="PlaceholderColor" Value="#757575" />
+            <Setter Property="BackgroundColor" Value="#F5F5F5" />
+            <Setter Property="HeightRequest" Value="44" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid
+        Padding="25"
+        RowDefinitions="Auto,Auto,*,Auto,Auto"
+        RowSpacing="20">
+
+        <!--  Header Section  -->
+        <VerticalStackLayout
+            Grid.Row="0"
+            HorizontalOptions="Start"
+            Spacing="5">
+            <Label
+                CharacterSpacing="1"
+                FontAttributes="Bold"
+                FontSize="22"
+                Text="MESSAGE DELETER"
+                TextColor="Black" />
+            <Label
+                CharacterSpacing="2"
+                FontSize="10"
+                Text="PURGE PROTOCOL ACTIVE"
+                TextColor="#666666" />
+            <BoxView
+                Margin="0,5,0,0"
+                BackgroundColor="Black"
+                HeightRequest="2"
+                HorizontalOptions="Start"
+                WidthRequest="30" />
+        </VerticalStackLayout>
+
+        <!--  Configuration Deck  -->
+        <Grid
+            Grid.Row="1"
+            ColumnDefinitions="*,*"
+            ColumnSpacing="15">
+            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                <Label
+                    Margin="5,0"
+                    FontAttributes="Bold"
+                    FontSize="9"
+                    Text="CHANNEL_ID"
+                    TextColor="Black" />
+                <Entry
+                    x:Name="ChannelIdEntry"
+                    FontSize="11"
+                    Placeholder="Target ID"/>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                <Label
+                    Margin="5,0"
+                    FontAttributes="Bold"
+                    FontSize="9"
+                    Text="USER_ID"
+                    TextColor="Black" />
+                <Entry
+                    x:Name="UserIdEntry"
+                    FontSize="11"
+                    Placeholder="Target ID"
+                    TextColor="Black" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!--  Operational Log  -->
+        <Border
+            Grid.Row="2"
+            Padding="15"
+            BackgroundColor="White"
+            Stroke="Black"
+            StrokeShape="Rectangle"
+            StrokeThickness="1.5">
+            <Grid RowDefinitions="*,Auto">
+                <ScrollView x:Name="LogScroll" Grid.Row="0">
+                    <Label
+                        x:Name="StatusLbl"
+                        FontFamily="Consolas"
+                        FontSize="10"
+                        LineHeight="1.4"
+                        Text="WAITING FOR PARAMETERS..."
+                        TextColor="Black" />
+                </ScrollView>
+
+                <Button
+                    Grid.Row="1"
+                    Margin="0,5,0,0"
+                    Padding="0"
+                    BackgroundColor="White"
+                    BorderWidth="1"
+                    Clicked="OnCopyLogClicked"
+                    FontSize="9"
+                    HeightRequest="24"
+                    HorizontalOptions="End"
+                    Text="SAVE LOG"
+                    TextColor="Black"
+                    WidthRequest="80" />
+            </Grid>
+        </Border>
+
+        <!--  Deployment Controls  -->
+        <Grid
+            Grid.Row="3"
+            ColumnDefinitions="2*,*"
+            ColumnSpacing="10">
+            <Button
+                x:Name="DeleteBtn"
+                Grid.Column="0"
+                BackgroundColor="Black"
+                Clicked="OnDeleteClicked"
+                HeightRequest="50"
+                Text="START PURGE"
+                TextColor="White" />
+
+            <Button
+                x:Name="AbortBtn"
+                Grid.Column="1"
+                BackgroundColor="White"
+                Clicked="OnAbortClicked"
+                HeightRequest="50"
+                IsEnabled="False"
+                Text="ABORT"
+                TextColor="Black" />
+        </Grid>
+
+        <Label
+            Grid.Row="4"
+            Margin="0,5,0,0"
+            FontSize="9"
+            HorizontalOptions="Center"
+            Text="SECURE TERMINAL CONNECTION"
+            TextColor="#AAAAAA" />
+    </Grid>
+</ContentPage>
