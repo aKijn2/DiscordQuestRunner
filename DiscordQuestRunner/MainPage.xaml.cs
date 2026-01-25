@@ -11,6 +11,9 @@ namespace DiscordQuestRunner
         private class CdpResponse
         {
             public string? webSocketDebuggerUrl { get; set; }
+            public string? type { get; set; }
+            public string? title { get; set; }
+            public string? url { get; set; }
         }
 
         private class CdpCommand
@@ -142,10 +145,114 @@ namespace DiscordQuestRunner
                     log(`Quest completed: ${questName}`);
                     await claimQuest(quest); // AUTO CLAIM
                     doJob(); 
+                } else if(taskName === "PLAY_ON_DESKTOP") {
+                    if(!isApp) {
+                        log(`This no longer works in browser for non-video quests. Use the discord desktop app to complete the ${questName} quest!`);
+                        doJob();
+                    } else {
+                        api.get({url: `/applications/public?application_ids=${applicationId}`}).then(res => {
+                            const appData = res.body[0];
+                            const exeName = appData.executables.find(x => x.os === "win32").name.replace(">","");
+                            
+                            const fakeGame = {
+                                cmdLine: `C:\\Program Files\\${appData.name}\\${exeName}`,
+                                exeName,
+                                exePath: `c:/program files/${appData.name.toLowerCase()}/${exeName}`,
+                                hidden: false,
+                                isLauncher: false,
+                                id: applicationId,
+                                name: appData.name,
+                                pid: pid,
+                                pidPath: [pid],
+                                processName: appData.name,
+                                start: Date.now(),
+                            };
+                            const realGames = RunningGameStore.getRunningGames();
+                            const fakeGames = [fakeGame];
+                            const realGetRunningGames = RunningGameStore.getRunningGames;
+                            const realGetGameForPID = RunningGameStore.getGameForPID;
+                            RunningGameStore.getRunningGames = () => fakeGames;
+                            RunningGameStore.getGameForPID = (pid) => fakeGames.find(x => x.pid === pid);
+                            FluxDispatcher.dispatch({type: "RUNNING_GAMES_CHANGE", removed: realGames, added: [fakeGame], games: fakeGames});
+                            
+                            let fn = data => {
+                                let progress = quest.config.configVersion === 1 ? data.userStatus.streamProgressSeconds : Math.floor(data.userStatus.progress.PLAY_ON_DESKTOP.value);
+                                log(`Quest progress: ${progress}/${secondsNeeded}`);
+                                
+                                if(progress >= secondsNeeded) {
+                                    log("Quest completed!");
+                                    
+                                    RunningGameStore.getRunningGames = realGetRunningGames;
+                                    RunningGameStore.getGameForPID = realGetGameForPID;
+                                    FluxDispatcher.dispatch({type: "RUNNING_GAMES_CHANGE", removed: [fakeGame], added: [], games: []});
+                                    FluxDispatcher.unsubscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
+                                    
+                                    claimQuest(quest).then(() => doJob());
+                                }
+                            };
+                            FluxDispatcher.subscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
+                            
+                            log(`Spoofed your game to ${applicationName}. Wait for ${Math.ceil((secondsNeeded - secondsDone) / 60)} more minutes.`);
+                        });
+                    }
+                } else if(taskName === "STREAM_ON_DESKTOP") {
+                    if(!isApp) {
+                        log(`This no longer works in browser for non-video quests. Use the discord desktop app to complete the ${questName} quest!`);
+                        doJob();
+                    } else {
+                        let realFunc = ApplicationStreamingStore.getStreamerActiveStreamMetadata;
+                        ApplicationStreamingStore.getStreamerActiveStreamMetadata = () => ({
+                            id: applicationId,
+                            pid,
+                            sourceName: null
+                        });
+                        
+                        let fn = data => {
+                            let progress = quest.config.configVersion === 1 ? data.userStatus.streamProgressSeconds : Math.floor(data.userStatus.progress.STREAM_ON_DESKTOP.value);
+                            log(`Quest progress: ${progress}/${secondsNeeded}`);
+                            
+                            if(progress >= secondsNeeded) {
+                                log("Quest completed!");
+                                
+                                ApplicationStreamingStore.getStreamerActiveStreamMetadata = realFunc;
+                                FluxDispatcher.unsubscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
+                                
+                                claimQuest(quest).then(() => doJob());
+                            }
+                        };
+                        FluxDispatcher.subscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
+                        
+                        log(`Spoofed your stream to ${applicationName}. Stream any window in vc for ${Math.ceil((secondsNeeded - secondsDone) / 60)} more minutes.`);
+                        log("Remember that you need at least 1 other person to be in the vc!");
+                    }
+                } else if(taskName === "PLAY_ACTIVITY") {
+                    const channelId = ChannelStore.getSortedPrivateChannels()[0]?.id ?? Object.values(GuildChannelStore.getAllGuilds()).find(x => x != null && x.VOCAL.length > 0).VOCAL[0].channel.id;
+                    const streamKey = `call:${channelId}:1`;
+                    
+                    let fn = async () => {
+                        log(`Completing quest ${questName} - ${quest.config.messages.questName}`);
+                        
+                        while(true) {
+                            const res = await api.post({url: `/quests/${quest.id}/heartbeat`, body: {stream_key: streamKey, terminal: false}});
+                            const progress = res.body.progress.PLAY_ACTIVITY.value;
+                            log(`Quest progress: ${progress}/${secondsNeeded}`);
+                            
+                            await new Promise(resolve => setTimeout(resolve, 20 * 1000));
+                            
+                            if(progress >= secondsNeeded) {
+                                await api.post({url: `/quests/${quest.id}/heartbeat`, body: {stream_key: streamKey, terminal: true}});
+                                break;
+                            }
+                        }
+                        
+                        log("Quest completed!");
+                        await claimQuest(quest);
+                        doJob();
+                    };
+                    fn();
                 } else {
-                    // Other types skipped for this demo to prevent errors, relying on video for now
-                    log(`Task type ${taskName} logic hooked but simplified for stability.`);
-                    doJob();
+                   log(`Unknown task type: ${taskName}`);
+                   doJob();
                 }
             };
             doJob();
@@ -272,10 +379,24 @@ namespace DiscordQuestRunner
                     {
                         string json = await client.GetStringAsync("http://127.0.0.1:9222/json");
                         var pages = JsonSerializer.Deserialize<List<CdpResponse>>(json);
-                        var page = pages?.FirstOrDefault(p => !string.IsNullOrEmpty(p.webSocketDebuggerUrl));
-                        if (page == null) throw new Exception("Nodes URL not found.");
+
+                        // Try to find the main Discord window
+                        // 1. Exclude DevTools
+                        var candidates = pages?.Where(p => p.type == "page" && !string.IsNullOrEmpty(p.webSocketDebuggerUrl) && !p.url.StartsWith("devtools://")).ToList();
+                        
+                        // 2. Prioritize "Discord" title or main channels URL
+                        var page = candidates?.FirstOrDefault(p => p.title == "Discord" || p.url.Contains("/channels/"));
+
+                        // 3. Fallback to any non-devtools page (e.g. "Friends", "Quests", etc)
+                        if (page == null) page = candidates?.FirstOrDefault();
+
+                        // 4. Last resort: any target with "Discord" in title (could be a popup)
+                        if (page == null) page = pages?.FirstOrDefault(p => p.title != null && p.title.Contains("Discord") && !p.url.StartsWith("devtools://"));
+                        
+                        if (page == null) throw new Exception("No valid Discord target found. Make sure Discord is open.");
+                        
                         wsUrl = page.webSocketDebuggerUrl!;
-                        Log("Target acquired via WebSocket.");
+                        Log($"Attached to target: {page.type} - {page.title}");
                     }
                     catch (Exception ex)
                     {
