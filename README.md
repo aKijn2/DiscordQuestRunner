@@ -45,3 +45,7 @@ This project is a high-performance .NET MAUI application that interfaces with th
 - Logic: JavaScript (Chrome DevTools Protocol execution)
 - Interface: XAML / Minimalist Vector Design
 - Connection: Local WebSocket Tunnel (Discord Debug Bridge)
+
+## Credits
+
+- Original quest runner script logic by [aamiaa](https://gist.github.com/aamiaa/204cd9d42013ded9faf646fae7f89fbb)
