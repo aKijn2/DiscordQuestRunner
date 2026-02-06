@@ -2,7 +2,7 @@
     x:Class="DiscordQuestRunner.MainPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="White">
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBgLight}, Dark={StaticResource PageBgDark}}">
 
     <ContentPage.Resources>
         <Style TargetType="Button">
@@ -11,11 +11,11 @@
             <Setter Property="FontSize" Value="14" />
             <Setter Property="HeightRequest" Value="50" />
             <Setter Property="BorderWidth" Value="1.5" />
-            <Setter Property="BorderColor" Value="Black" />
+            <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}" />
         </Style>
         <Style TargetType="Entry">
-            <Setter Property="TextColor" Value="Black" />
-            <Setter Property="PlaceholderColor" Value="#757575" />
+            <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource EntryTextLight}, Dark={StaticResource EntryTextDark}}" />
+            <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource PlaceholderLight}, Dark={StaticResource PlaceholderDark}}" />
         </Style>
     </ContentPage.Resources>
 
@@ -27,22 +27,22 @@
                 FontAttributes="Bold"
                 FontSize="24"
                 Text="QUEST AUTOMATION"
-                TextColor="Black" 
+                TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
                 CharacterSpacing="1"/>
             <Label
                 FontSize="11"
                 Text="PROTOCOL V1.0"
-                TextColor="#666666" 
+                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
                 CharacterSpacing="2"/>
-            <BoxView HeightRequest="2" WidthRequest="30" BackgroundColor="Black" HorizontalOptions="Start" Margin="0,5,0,0"/>
+            <BoxView HeightRequest="2" WidthRequest="30" BackgroundColor="{AppThemeBinding Light={StaticResource DividerLight}, Dark={StaticResource DividerDark}}" HorizontalOptions="Start" Margin="0,5,0,0"/>
         </VerticalStackLayout>
 
-        <!--  Monochrome Status Area  -->
+        <!--  Status Area  -->
         <Border
             Grid.Row="1"
             Padding="15"
-            BackgroundColor="White"
-            Stroke="Black"
+            BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
+            Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
             StrokeShape="Rectangle"
             StrokeThickness="1.5">
             <Grid RowDefinitions="*,Auto">
@@ -53,15 +53,15 @@
                         FontFamily="Consolas"
                         LineHeight="1.4"
                         Text="SYSTEM INITIALIZING..."
-                        TextColor="Black" />
+                        TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
                 </ScrollView>
                 
                 <Button
                     Grid.Row="1"
                     Text="COPY LOG"
                     Clicked="OnCopyLogClicked"
-                    BackgroundColor="White"
-                    TextColor="Black"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource BtnSecondaryBgLight}, Dark={StaticResource BtnSecondaryBgDark}}"
+                    TextColor="{AppThemeBinding Light={StaticResource BtnSecondaryTextLight}, Dark={StaticResource BtnSecondaryTextDark}}"
                     FontSize="10"
                     HeightRequest="26"
                     WidthRequest="100"
@@ -78,29 +78,29 @@
                 x:Name="LoadingIndicator"
                 IsRunning="False"
                 IsVisible="False"
-                Color="Black"
+                Color="{AppThemeBinding Light={StaticResource SpinnerLight}, Dark={StaticResource SpinnerDark}}"
                 HeightRequest="24"
                 WidthRequest="24"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="RunBtn"
-                BackgroundColor="Black"
+                BackgroundColor="{AppThemeBinding Light={StaticResource BtnPrimaryBgLight}, Dark={StaticResource BtnPrimaryBgDark}}"
                 Clicked="OnRunClicked"
                 Text="RUN AUTOMATION"
-                TextColor="White" />
+                TextColor="{AppThemeBinding Light={StaticResource BtnPrimaryTextLight}, Dark={StaticResource BtnPrimaryTextDark}}" />
 
             <Button
-                BackgroundColor="White"
+                BackgroundColor="{AppThemeBinding Light={StaticResource BtnSecondaryBgLight}, Dark={StaticResource BtnSecondaryBgDark}}"
                 Clicked="OnOpenDeleterClicked"
                 Text="MESSAGE DELETER"
-                TextColor="Black" />
+                TextColor="{AppThemeBinding Light={StaticResource BtnSecondaryTextLight}, Dark={StaticResource BtnSecondaryTextDark}}" />
             
             <Label
                 FontSize="9"
                 HorizontalOptions="Center"
                 Text="CDP INTERFACE ACTIVE"
-                TextColor="#999999"
+                TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
                 Margin="0,5,0,0" />
         </VerticalStackLayout>
     </Grid>
