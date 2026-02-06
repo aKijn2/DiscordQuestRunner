@@ -1,33 +1,11 @@
-﻿using System.Diagnostics;
-using System.Net.WebSockets;
-using System.Text.Json;
-using System.Text;
+﻿using DiscordQuestRunner.Services;
 
 namespace DiscordQuestRunner
 {
     public partial class MainPage : ContentPage
     {
-        // JSON models for WebSocket communication
-        private class CdpResponse
-        {
-            public string? webSocketDebuggerUrl { get; set; }
-            public string? type { get; set; }
-            public string? title { get; set; }
-            public string? url { get; set; }
-        }
-
-        private class CdpCommand
-        {
-            public int id { get; set; }
-            public string? method { get; set; }
-            public object? @params { get; set; }
-        }
-
-        private class CdpParamsParams
-        {
-            public string? expression { get; set; }
-            public bool awaitPromise { get; set; }
-        }
+        private readonly DiscordService _discordService;
+        private bool _isRunning;
 
         // Automation script
         // Original logic derived from: https://gist.github.com/aamiaa/204cd9d42013ded9faf646fae7f89fbb
@@ -267,17 +245,18 @@ namespace DiscordQuestRunner
 })();
 """;
 
-        public MainPage()
+        public MainPage(DiscordService discordService)
         {
             InitializeComponent();
+            _discordService = discordService;
         }
-        
+
         private void OnOpenDeleterClicked(object sender, EventArgs e)
         {
 #if WINDOWS
             var deleterWindow = new Window
             {
-                Page = new Pages.DeleterPage(),
+                Page = new Pages.DeleterPage(_discordService),
                 Title = "Discord Message Deleter",
                 Width = 550,
                 Height = 650,
@@ -299,10 +278,16 @@ namespace DiscordQuestRunner
         private async void OnRunClicked(object sender, EventArgs e)
         {
 #if WINDOWS
+            if (_isRunning) return;
+            _isRunning = true;
+            RunBtn.IsEnabled = false;
+            RunBtn.Text = "RUNNING...";
+            LoadingIndicator.IsVisible = true;
+            LoadingIndicator.IsRunning = true;
+
             try
             {
-                // Helper log function
-                void Log(string msg) => MainThread.BeginInvokeOnMainThread(() => 
+                void Log(string msg) => MainThread.BeginInvokeOnMainThread(() =>
                 {
                     StatusLbl.Text += $"\n{msg}";
                     LogScroll.ScrollToAsync(StatusLbl, ScrollToPosition.End, true);
@@ -311,148 +296,55 @@ namespace DiscordQuestRunner
                 StatusLbl.Text = "Initializing sequence...";
                 Log("Checking Discord process...");
 
-                // 1. Find Discord process and verify arguments
-                Process[] processes = Process.GetProcessesByName("Discord");
-                bool needsRestart = false;
+                // 1. Check if debug port is available
+                var portCheck = await _discordService.CheckDebugPortAsync();
 
-                if (processes.Length == 0)
+                if (!portCheck.isReady)
                 {
-                    needsRestart = true;
-                    Log("WARNING: Discord process not found.");
-                }
-                else
-                {
-                     // Verify debug port
-                     try 
-                     {
-                         using (var client = new HttpClient())
-                         {
-                             client.Timeout = TimeSpan.FromSeconds(1);
-                             var response = await client.GetAsync("http://127.0.0.1:9222/json/version");
-                             if (!response.IsSuccessStatusCode) needsRestart = true;
-                             else Log("Connection established with Discord.");
-                         }
-                     }
-                     catch 
-                     {
-                         needsRestart = true;
-                         Log("WARNING: Debug port 9222 unreachable.");
-                     }
-                }
-
-                if (needsRestart)
-                {
+                    Log($"WARNING: {portCheck.message}");
                     Log("INITIATING RESTART PROTOCOL...");
-                    bool answer = await DisplayAlert("System Alert", "Discord must be restarted in Debug Mode. Proceed?", "Yes", "No");
-                    
-                    if (!answer) 
+
+                    bool answer = await DisplayAlert("System Alert",
+                        "Discord must be restarted in Debug Mode. Proceed?", "Yes", "No");
+
+                    if (!answer)
                     {
                         Log("Aborted by user.");
                         return;
                     }
 
-                    foreach (var p in processes) { try { p.Kill(); } catch { } }
-                    await Task.Delay(1000);
+                    var restart = await _discordService.RestartDiscordAsync(Log);
+                    if (!restart.success)
+                    {
+                        Log($"FATAL: {restart.message}");
+                        return;
+                    }
 
-                    string discordPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord");
-                    if (!Directory.Exists(discordPath)) { Log("FATAL: Discord path missing."); return; }
-
-                    var appDirs = Directory.GetDirectories(discordPath, "app-*");
-                    if (appDirs.Length == 0) { await DisplayAlert("ERROR", "No version found", "OK"); return; }
-                    
-                    string latestApp = appDirs.OrderByDescending(d => d).First();
-                    string exePath = Path.Combine(latestApp, "Discord.exe");
-
-                    if (!File.Exists(exePath)) { Log("FATAL: Discord.exe missing."); return; }
-
-                    Process.Start(exePath, "--remote-debugging-port=9222");
-                    Log($"Restarting target: {exePath}");
-                    await Task.Delay(5000);
+                    Log(restart.message);
+                }
+                else
+                {
+                    Log("Connection established with Discord.");
                 }
 
                 Log("Acquiring WebSocket URL...");
 
                 // 2. Get WebSocket URL
-                string wsUrl = "";
-                using (var client = new HttpClient())
+                var connection = await _discordService.InitConnectionAsync();
+                if (!connection.success)
                 {
-                    try 
-                    {
-                        string json = await client.GetStringAsync("http://127.0.0.1:9222/json");
-                        var pages = JsonSerializer.Deserialize<List<CdpResponse>>(json);
-
-                        // Try to find the main Discord window
-                        // 1. Exclude DevTools
-                        var candidates = pages?.Where(p => p.type == "page" && !string.IsNullOrEmpty(p.webSocketDebuggerUrl) && !p.url.StartsWith("devtools://")).ToList();
-                        
-                        // 2. Prioritize "Discord" title or main channels URL
-                        var page = candidates?.FirstOrDefault(p => p.title == "Discord" || p.url.Contains("/channels/"));
-
-                        // 3. Fallback to any non-devtools page (e.g. "Friends", "Quests", etc)
-                        if (page == null) page = candidates?.FirstOrDefault();
-
-                        // 4. Last resort: any target with "Discord" in title (could be a popup)
-                        if (page == null) page = pages?.FirstOrDefault(p => p.title != null && p.title.Contains("Discord") && !p.url.StartsWith("devtools://"));
-                        
-                        if (page == null) throw new Exception("No valid Discord target found. Make sure Discord is open.");
-                        
-                        wsUrl = page.webSocketDebuggerUrl!;
-                        Log($"Attached to target: {page.type} - {page.title}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log($"ERROR: {ex.Message}");
-                        return;
-                    }
+                    Log($"ERROR: {connection.message}");
+                    return;
                 }
 
+                Log(connection.message);
                 Log("Injecting payload...");
 
-                // 3. Connect and execute
-                using (var ws = new ClientWebSocket())
+                // 3. Execute script via service
+                await _discordService.ExecuteScriptAsync(connection.wsUrl, DiscordScript, (msg) =>
                 {
-                    await ws.ConnectAsync(new Uri(wsUrl), CancellationToken.None);
-
-                    var cmd = new CdpCommand
-                    {
-                        id = 1,
-                        method = "Runtime.evaluate",
-                        @params = new CdpParamsParams
-                        {
-                            expression = DiscordScript,
-                            awaitPromise = true // REQUIRED FOR ASYNC INSERT PROCESS
-                        }
-                    };
-
-                    string cmdJson = JsonSerializer.Serialize(cmd);
-                    var bytes = Encoding.UTF8.GetBytes(cmdJson);
-                    
-                    await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
-                    
-                    // Receive and process response
-                    var buffer = new byte[1024 * 64]; 
-                    
-                    while(ws.State == WebSocketState.Open) {
-                        var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                        if (result.MessageType == WebSocketMessageType.Close) break;
-
-                        string responseJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        
-                        // Parse output
-                        try {
-                            using (JsonDocument doc = JsonDocument.Parse(responseJson))
-                            {
-                                if (doc.RootElement.TryGetProperty("result", out var res) && res.TryGetProperty("result", out var innerRes) && innerRes.TryGetProperty("value", out var val))
-                                {
-                                    string output = val.GetString() ?? "";
-                                    Log("SCRIPT: " + output);
-                                }
-                            }
-                        } catch { } // Ignore parse errors for partial frames
-                    }
-
-                    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Done", CancellationToken.None);
-                }
+                    Log("SCRIPT: " + msg);
+                });
 
                 Log("Payload delivered successfully.");
                 Log("Monitoring background tasks...");
@@ -461,6 +353,14 @@ namespace DiscordQuestRunner
             {
                 await DisplayAlert("System Failure", ex.Message, "OK");
                 StatusLbl.Text += $"\nCRITICAL FAILURE: {ex.Message}";
+            }
+            finally
+            {
+                _isRunning = false;
+                RunBtn.IsEnabled = true;
+                RunBtn.Text = "RUN AUTOMATION";
+                LoadingIndicator.IsVisible = false;
+                LoadingIndicator.IsRunning = false;
             }
 #else
             await DisplayAlert("Error", "This automation only works on Windows.", "OK");

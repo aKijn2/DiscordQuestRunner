@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DiscordQuestRunner.Services;
+using Microsoft.Extensions.Logging;
 
 namespace DiscordQuestRunner
 {
@@ -14,6 +15,10 @@ namespace DiscordQuestRunner
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
+
+            // Services
+            builder.Services.AddSingleton<DiscordService>();
+            builder.Services.AddTransient<MainPage>();
 
 #if DEBUG
     		builder.Logging.AddDebug();

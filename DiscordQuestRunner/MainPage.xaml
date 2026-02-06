@@ -74,6 +74,15 @@
 
         <!--  Action Deck  -->
         <VerticalStackLayout Grid.Row="2" Spacing="12">
+            <ActivityIndicator
+                x:Name="LoadingIndicator"
+                IsRunning="False"
+                IsVisible="False"
+                Color="Black"
+                HeightRequest="24"
+                WidthRequest="24"
+                HorizontalOptions="Center" />
+
             <Button
                 x:Name="RunBtn"
                 BackgroundColor="Black"

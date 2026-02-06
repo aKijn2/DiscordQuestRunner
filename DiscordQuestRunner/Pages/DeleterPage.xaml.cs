@@ -164,10 +164,19 @@ namespace DiscordQuestRunner.Pages
 })();
 """;
 
-        public DeleterPage()
+        public DeleterPage(DiscordService discordService)
         {
             InitializeComponent();
-            _discordService = new DiscordService();
+            _discordService = discordService;
+        }
+
+        /// <summary>
+        /// Validates that a string is a valid Discord snowflake ID (17-20 digit number).
+        /// </summary>
+        private static bool IsValidSnowflakeId(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+            return value.Length >= 17 && value.Length <= 20 && value.All(char.IsDigit);
         }
 
         private async void OnCopyLogClicked(object sender, EventArgs e)
@@ -186,12 +195,12 @@ namespace DiscordQuestRunner.Pages
         private async void OnDeleteClicked(object sender, EventArgs e)
         {
 #if WINDOWS
-            string channelId = ChannelIdEntry.Text?.Trim();
-            string userId = UserIdEntry.Text?.Trim();
+            string channelId = ChannelIdEntry.Text?.Trim() ?? "";
+            string userId = UserIdEntry.Text?.Trim() ?? "";
 
-            if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(userId))
+            if (!IsValidSnowflakeId(channelId) || !IsValidSnowflakeId(userId))
             {
-                await DisplayAlert("Error", "Please enter both Channel ID and User ID.", "OK");
+                await DisplayAlert("Error", "Please enter valid Discord IDs (17-20 digit numbers).", "OK");
                 return;
             }
 
@@ -204,6 +213,8 @@ namespace DiscordQuestRunner.Pages
             if (!confirm) return;
 
             DeleteBtn.IsEnabled = false;
+            LoadingIndicator.IsVisible = true;
+            LoadingIndicator.IsRunning = true;
             StatusLbl.Text = "Counting messages...";
             Log("Connecting to Discord...");
 
@@ -277,6 +288,8 @@ namespace DiscordQuestRunner.Pages
             Log("Deletion sequence completed.");
             DeleteBtn.IsEnabled = true;
             AbortBtn.IsEnabled = false;
+            LoadingIndicator.IsVisible = false;
+            LoadingIndicator.IsRunning = false;
 #else
             await DisplayAlert("Error", "This automation only works on Windows.", "OK");
 #endif

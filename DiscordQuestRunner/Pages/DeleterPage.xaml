@@ -66,6 +66,7 @@
                 <Entry
                     x:Name="ChannelIdEntry"
                     FontSize="11"
+                    Keyboard="Numeric"
                     Placeholder="Target ID"/>
             </VerticalStackLayout>
 
@@ -79,6 +80,7 @@
                 <Entry
                     x:Name="UserIdEntry"
                     FontSize="11"
+                    Keyboard="Numeric"
                     Placeholder="Target ID"
                     TextColor="Black" />
             </VerticalStackLayout>
@@ -120,29 +122,39 @@
         </Border>
 
         <!--  Deployment Controls  -->
-        <Grid
-            Grid.Row="3"
-            ColumnDefinitions="2*,*"
-            ColumnSpacing="10">
-            <Button
-                x:Name="DeleteBtn"
-                Grid.Column="0"
-                BackgroundColor="Black"
-                Clicked="OnDeleteClicked"
-                HeightRequest="50"
-                Text="START PURGE"
-                TextColor="White" />
+        <VerticalStackLayout Grid.Row="3" Spacing="8">
+            <ActivityIndicator
+                x:Name="LoadingIndicator"
+                IsRunning="False"
+                IsVisible="False"
+                Color="Black"
+                HeightRequest="24"
+                WidthRequest="24"
+                HorizontalOptions="Center" />
 
-            <Button
-                x:Name="AbortBtn"
-                Grid.Column="1"
-                BackgroundColor="White"
-                Clicked="OnAbortClicked"
-                HeightRequest="50"
-                IsEnabled="False"
-                Text="ABORT"
-                TextColor="Black" />
-        </Grid>
+            <Grid
+                ColumnDefinitions="2*,*"
+                ColumnSpacing="10">
+                <Button
+                    x:Name="DeleteBtn"
+                    Grid.Column="0"
+                    BackgroundColor="Black"
+                    Clicked="OnDeleteClicked"
+                    HeightRequest="50"
+                    Text="START PURGE"
+                    TextColor="White" />
+
+                <Button
+                    x:Name="AbortBtn"
+                    Grid.Column="1"
+                    BackgroundColor="White"
+                    Clicked="OnAbortClicked"
+                    HeightRequest="50"
+                    IsEnabled="False"
+                    Text="ABORT"
+                    TextColor="Black" />
+            </Grid>
+        </VerticalStackLayout>
 
         <Label
             Grid.Row="4"

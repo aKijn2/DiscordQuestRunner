@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordQuestRunner", "DiscordQuestRunner.csproj", "{D3CE8860-8AD2-458F-3A7F-58C5C21A5096}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D3CE8860-8AD2-458F-3A7F-58C5C21A5096}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3CE8860-8AD2-458F-3A7F-58C5C21A5096}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3CE8860-8AD2-458F-3A7F-58C5C21A5096}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3CE8860-8AD2-458F-3A7F-58C5C21A5096}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E6194244-1C02-49E8-AAC8-EEA57BF87309}
+	EndGlobalSection
+EndGlobal
