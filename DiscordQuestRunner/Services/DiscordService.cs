@@ -19,6 +19,16 @@ namespace DiscordQuestRunner.Services
         private const string DEBUG_URL = "http://127.0.0.1:9222";
 
         /// <summary>
+        /// Loads a JavaScript file from the app's bundled Resources/Raw/Scripts folder.
+        /// </summary>
+        public static async Task<string> LoadScriptAsync(string fileName)
+        {
+            using var stream = await FileSystem.OpenAppPackageFileAsync($"Scripts/{fileName}");
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
+        }
+
+        /// <summary>
         /// Checks whether Discord is running with the debug port accessible.
         /// </summary>
         public async Task<(bool isReady, bool processFound, string message)> CheckDebugPortAsync()

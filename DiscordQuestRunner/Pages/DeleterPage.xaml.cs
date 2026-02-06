@@ -7,163 +7,6 @@ namespace DiscordQuestRunner.Pages
         private readonly DiscordService _discordService;
         private bool _isAborting = false;
 
-        const string CountMessagesScript = """
-(async function() {
-    try {
-        console.log("--- COUNTING MESSAGES ---");
-
-        // 1. WEBPACK & API
-        let wpRequire;
-        try {
-            wpRequire = webpackChunkdiscord_app.push([[Symbol()], {}, r => r]);
-            webpackChunkdiscord_app.pop();
-        } catch(e) { console.log("Webpack error: " + e.message); return; }
-
-        let api = Object.values(wpRequire.c).find(x => x?.exports?.tn?.get)?.exports?.tn || 
-                  Object.values(wpRequire.c).find(x => x?.exports?.Bo?.get)?.exports?.Bo;
-        
-        if(!api) {
-            console.log("ERROR: Could not find Discord API module.");
-            return;
-        }
-
-        const channelId = "CHANNEL_ID_PLACEHOLDER";
-        const userId = "USER_ID_PLACEHOLDER";
-
-        console.log(`Target Channel: ${channelId}`);
-        console.log(`Target User: ${userId}`);
-        console.log("Counting messages...");
-
-        // 2. COUNT MESSAGES
-        let totalCount = 0;
-        let lastId = null;
-        let fetchCount = 0;
-        const maxFetches = 15;
-
-        while(fetchCount < maxFetches) {
-            try {
-                const url = lastId 
-                    ? `/channels/${channelId}/messages?before=${lastId}&limit=100`
-                    : `/channels/${channelId}/messages?limit=100`;
-                
-                const response = await api.get({ url });
-                const batch = response.body;
-                
-                if(!batch || batch.length === 0) break;
-                
-                const userMessages = batch.filter(m => m.author.id === userId);
-                totalCount += userMessages.length;
-                
-                lastId = batch[batch.length - 1].id;
-                fetchCount++;
-                
-                console.log(`Batch ${fetchCount}: +${userMessages.length} (Total: ${totalCount})`);
-                
-                if(batch.length < 100) break;
-                await new Promise(r => setTimeout(r, 500));
-            } catch(e) {
-                console.log(`Fetch error: ${e.message}`);
-                break;
-            }
-        }
-
-        console.log(`COUNT_RESULT:${totalCount}`);
-
-    } catch(e) { 
-        console.log("Global Error: " + e.message); 
-    }
-})();
-""";
-
-        const string DeletionScript = """
-(async function() {
-    try {
-        console.log("--- MESSAGE DELETER ACTIVE ---");
-
-        // 1. WEBPACK & API
-        let wpRequire;
-        try {
-            wpRequire = webpackChunkdiscord_app.push([[Symbol()], {}, r => r]);
-            webpackChunkdiscord_app.pop();
-        } catch(e) { console.log("Webpack error: " + e.message); return; }
-
-        let api = Object.values(wpRequire.c).find(x => x?.exports?.tn?.get)?.exports?.tn || 
-                  Object.values(wpRequire.c).find(x => x?.exports?.Bo?.get)?.exports?.Bo;
-        
-        if(!api) {
-            console.log("ERROR: Could not find Discord API module.");
-            return;
-        }
-
-        const channelId = "CHANNEL_ID_PLACEHOLDER";
-        const userId = "USER_ID_PLACEHOLDER";
-
-        console.log("Re-fetching message list for deletion...");
-
-        // 2. FETCH MESSAGES
-        let messages = [];
-        let lastId = null;
-        let fetchCount = 0;
-        const maxFetches = 15;
-
-        while(fetchCount < maxFetches) {
-            try {
-                const url = lastId 
-                    ? `/channels/${channelId}/messages?before=${lastId}&limit=100`
-                    : `/channels/${channelId}/messages?limit=100`;
-                
-                const response = await api.get({ url });
-                const batch = response.body;
-                
-                if(!batch || batch.length === 0) break;
-                
-                const userMessages = batch.filter(m => m.author.id === userId);
-                messages.push(...userMessages);
-                
-                lastId = batch[batch.length - 1].id;
-                fetchCount++;
-                
-                if(batch.length < 100) break;
-                await new Promise(r => setTimeout(r, 400));
-            } catch(e) { break; }
-        }
-
-        console.log(`Ready to purge ${messages.length} messages.`);
-
-        if(messages.length === 0) {
-            console.log("No targets found.");
-            return;
-        }
-
-        // 3. PURGE
-        let deleted = 0;
-        for(const msg of messages) {
-            try {
-                await api.del({
-                    url: `/channels/${channelId}/messages/${msg.id}`
-                });
-                deleted++;
-                console.log(`[${deleted}/${messages.length}] Purged message: ${msg.id}`);
-                
-                await new Promise(r => setTimeout(r, 1100)); // Safer delay
-            } catch(e) {
-                if(e.status === 429) {
-                    console.log("Rate limited. Pausing for 5s...");
-                    await new Promise(r => setTimeout(r, 5000));
-                } else {
-                    console.log(`Failed for ${msg.id}: ${e.message}`);
-                }
-            }
-        }
-
-        console.log(`PURGE COMPLETE. ${deleted} messages neutralized.`);
-
-    } catch(e) { 
-        console.log("Critical Purge Error: " + e.message); 
-    }
-})();
-""";
-
         public DeleterPage(DiscordService discordService)
         {
             InitializeComponent();
@@ -215,21 +58,59 @@ namespace DiscordQuestRunner.Pages
             DeleteBtn.IsEnabled = false;
             LoadingIndicator.IsVisible = true;
             LoadingIndicator.IsRunning = true;
-            StatusLbl.Text = "Counting messages...";
-            Log("Connecting to Discord...");
+            StatusLbl.Text = "Connecting to Discord...";
+            Log("Checking Discord debug port...");
 
+            // Check if debug port is available, restart if needed
+            var portCheck = await _discordService.CheckDebugPortAsync();
+            if (!portCheck.isReady)
+            {
+                Log($"WARNING: {portCheck.message}");
+                bool restart = await DisplayAlert("Debug Port Unavailable",
+                    "Discord must be restarted with debug mode enabled. Proceed?", "Yes", "No");
+
+                if (!restart)
+                {
+                    Log("Aborted by user.");
+                    DeleteBtn.IsEnabled = true;
+                    LoadingIndicator.IsVisible = false;
+                    LoadingIndicator.IsRunning = false;
+                    return;
+                }
+
+                Log("Restarting Discord...");
+                var restartResult = await _discordService.RestartDiscordAsync(Log);
+                if (!restartResult.success)
+                {
+                    Log($"FATAL: {restartResult.message}");
+                    DeleteBtn.IsEnabled = true;
+                    LoadingIndicator.IsVisible = false;
+                    LoadingIndicator.IsRunning = false;
+                    return;
+                }
+                Log(restartResult.message);
+            }
+            else
+            {
+                Log("Debug port accessible.");
+            }
+
+            Log("Acquiring WebSocket connection...");
             var connection = await _discordService.InitConnectionAsync();
             if (!connection.success)
             {
                 Log($"ERROR: {connection.message}");
                 DeleteBtn.IsEnabled = true;
+                LoadingIndicator.IsVisible = false;
+                LoadingIndicator.IsRunning = false;
                 return;
             }
 
             Log(connection.message);
             Log("Counting messages...");
 
-            string countScript = CountMessagesScript
+            string countScriptTemplate = await DiscordService.LoadScriptAsync("count_messages.js");
+            string countScript = countScriptTemplate
                 .Replace("CHANNEL_ID_PLACEHOLDER", channelId)
                 .Replace("USER_ID_PLACEHOLDER", userId);
 
@@ -272,7 +153,8 @@ namespace DiscordQuestRunner.Pages
 
             Log("Starting deletion...");
 
-            string script = DeletionScript
+            string deleteScriptTemplate = await DiscordService.LoadScriptAsync("delete_messages.js");
+            string script = deleteScriptTemplate
                 .Replace("CHANNEL_ID_PLACEHOLDER", channelId)
                 .Replace("USER_ID_PLACEHOLDER", userId);
 
