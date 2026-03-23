@@ -28,6 +28,40 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
+    <!-- App-specific theme colors (Discord-inspired dark) -->
+    <Color x:Key="PageBgLight">White</Color>
+    <Color x:Key="PageBgDark">#1a1a2e</Color>
+    <Color x:Key="CardBgLight">White</Color>
+    <Color x:Key="CardBgDark">#16213e</Color>
+    <Color x:Key="TextPrimaryLight">Black</Color>
+    <Color x:Key="TextPrimaryDark">#e0e0e0</Color>
+    <Color x:Key="TextSecondaryLight">#666666</Color>
+    <Color x:Key="TextSecondaryDark">#9a9ab0</Color>
+    <Color x:Key="TextMutedLight">#999999</Color>
+    <Color x:Key="TextMutedDark">#5c5c7a</Color>
+    <Color x:Key="AccentLight">Black</Color>
+    <Color x:Key="AccentDark">#e0e0e0</Color>
+    <Color x:Key="BorderLight">Black</Color>
+    <Color x:Key="BorderDark">#3a3a5c</Color>
+    <Color x:Key="BtnPrimaryBgLight">Black</Color>
+    <Color x:Key="BtnPrimaryBgDark">#5865F2</Color>
+    <Color x:Key="BtnPrimaryTextLight">White</Color>
+    <Color x:Key="BtnPrimaryTextDark">White</Color>
+    <Color x:Key="BtnSecondaryBgLight">White</Color>
+    <Color x:Key="BtnSecondaryBgDark">#2a2a4a</Color>
+    <Color x:Key="BtnSecondaryTextLight">Black</Color>
+    <Color x:Key="BtnSecondaryTextDark">#e0e0e0</Color>
+    <Color x:Key="EntryBgLight">#F5F5F5</Color>
+    <Color x:Key="EntryBgDark">#0f3460</Color>
+    <Color x:Key="EntryTextLight">Black</Color>
+    <Color x:Key="EntryTextDark">#e0e0e0</Color>
+    <Color x:Key="PlaceholderLight">#757575</Color>
+    <Color x:Key="PlaceholderDark">#6a6a8a</Color>
+    <Color x:Key="DividerLight">Black</Color>
+    <Color x:Key="DividerDark">#5865F2</Color>
+    <Color x:Key="SpinnerLight">Black</Color>
+    <Color x:Key="SpinnerDark">#5865F2</Color>
+
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>

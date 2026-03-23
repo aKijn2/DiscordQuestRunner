@@ -2,14 +2,18 @@
 {
     public partial class App : Application
     {
-        public App()
+        private readonly IServiceProvider _serviceProvider;
+
+        public App(IServiceProvider serviceProvider)
         {
             InitializeComponent();
+            _serviceProvider = serviceProvider;
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            var window = new Window(new MainPage());
+            var mainPage = _serviceProvider.GetRequiredService<MainPage>();
+            var window = new Window(mainPage);
             
             const int defaultWidth = 500;
             const int defaultHeight = 700;
