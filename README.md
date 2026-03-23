@@ -1,3 +1,9 @@
+# TODO
+
+- Refactor the code
+- Add comments in the code (difficult parts only)
+- Fix the program, not working because of the new discord update. 
+
 # QUEST AUTOMATION
 
 Advanced minimalist suite for Discord automation, providing secure quest rewards claiming and message cleanup protocols.
