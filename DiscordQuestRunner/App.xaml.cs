@@ -13,8 +13,6 @@
         protected override Window CreateWindow(IActivationState? activationState)
         {
             var mainPage = _serviceProvider.GetRequiredService<MainPage>();
-
-            // Wrap the main page in a NavigationPage
             var navPage = new NavigationPage(mainPage);
 
             var window = new Window(navPage)
@@ -26,6 +24,17 @@
                 MaximumWidth = 500,
                 MinimumHeight = 700,
                 MaximumHeight = 700,
+            };
+
+            // Hook into the window creation event to center it
+            window.Created += (s, e) =>
+            {
+                Application.Current?.Dispatcher.Dispatch(() =>
+                {
+                    var displayInfo = DeviceDisplay.Current.MainDisplayInfo;
+                    window.X = (displayInfo.Width / displayInfo.Density - window.Width) / 2;
+                    window.Y = (displayInfo.Height / displayInfo.Density - window.Height) / 2;
+                });
             };
 
             return window;
