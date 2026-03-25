@@ -47,7 +47,7 @@ Built on **.NET MAUI 9.0**, this application interfaces directly with the offici
 ### Option 2: Build from Source
 
 ```bash
-git clone https://github.com/yourusername/DiscordQuestRunner.git
+git clone https://github.com/aKijn2/DiscordQuestRunner.git
 cd DiscordQuestRunner
 dotnet run -f net9.0-windows10.0.19041.0
 ```
