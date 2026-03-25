@@ -35,6 +35,13 @@ namespace DiscordQuestRunner.Services
             return await reader.ReadToEndAsync();
         }
 
+        public static async Task<string> LoadScriptWithDebugBannerAsync(string fileName)
+        {
+            var script = await LoadScriptAsync(fileName);
+            var banner = $"console.log('[DQR] Loaded script asset: {fileName}');\n";
+            return banner + script;
+        }
+
         /// <summary>
         /// Checks whether Discord is running with the debug port accessible.
         /// </summary>

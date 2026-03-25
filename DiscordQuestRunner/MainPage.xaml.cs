@@ -164,8 +164,8 @@ namespace DiscordQuestRunner
                     Log("Injecting Auto-Accept payload...");
                     
                     // 2. CHANGED FILENAME TO _v2.js TO BUST THE CACHE
-                    string autoAcceptScript = await DiscordService.LoadScriptAsync(
-                        "auto_accept_v2.js" 
+                    string autoAcceptScript = await DiscordService.LoadScriptWithDebugBannerAsync(
+                        "auto_accept_v2.js"
                     );
 
                     await _discordService.ExecuteScriptAsync(
@@ -176,6 +176,8 @@ namespace DiscordQuestRunner
                             Log("AUTO: " + msg);
                         }
                     );
+
+                    await Task.Delay(500);
                     Log("Auto-Accept sequence completed.");
                 }
                 // ---------------------------------
@@ -183,7 +185,9 @@ namespace DiscordQuestRunner
                 Log("Injecting Main Quest Runner payload...");
 
                 // 3. CHANGED FILENAME TO _v2.js TO BUST THE CACHE
-                string script = await DiscordService.LoadScriptAsync("quest_runner_v2.js");
+                string script = await DiscordService.LoadScriptWithDebugBannerAsync(
+                    "quest_runner_v2.js"
+                );
                 
                 await _discordService.ExecuteScriptAsync(
                     connection.wsUrl,

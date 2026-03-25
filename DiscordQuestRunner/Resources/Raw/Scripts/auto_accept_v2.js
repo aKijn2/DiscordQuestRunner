@@ -1,5 +1,41 @@
-async function autoAcceptQuests() {
+(async function () {
+    const stateKey = "__DQR_AUTO_ACCEPT_STATE__";
+    const runId = `auto-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const previousState = window[stateKey];
+
+    if (previousState?.cancel) {
+        previousState.cancel("superseded");
+    }
+
+    const state = {
+        runId,
+        cancelled: false,
+        reason: null,
+        cancel(reason) {
+            this.cancelled = true;
+            this.reason = reason || "cancelled";
+        }
+    };
+    window[stateKey] = state;
+
+    const isCancelled = () => state.cancelled || window[stateKey]?.runId !== runId;
+    const cancelReason = () => state.reason || "superseded";
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    async function autoAcceptQuests() {
     console.log("[INIT] Scanning for available quests...");
+
+    const getQuestName = (quest) => quest?.config?.messages?.questName || quest?.config?.application?.name || quest?.id || "Unknown Quest";
+    const getErrorDetails = (error) => {
+        if (!error) return "Unknown error";
+
+        const parts = [];
+        if (error.status != null) parts.push(`status=${error.status}`);
+        if (error.message) parts.push(`message=${error.message}`);
+        if (error.body) parts.push(`body=${JSON.stringify(error.body)}`);
+
+        return parts.length > 0 ? parts.join(" | ") : String(error);
+    };
 
     let wpRequire;
     try {
@@ -22,34 +58,55 @@ async function autoAcceptQuests() {
     }
 
     try {
-        // Filter out expired quests so we don't try to accept dead ones
-        const quests = [...QuestsStore.quests.values()].filter(x => new Date(x.config.expiresAt).getTime() > Date.now());
+        // Filter out expired quests and only keep quests that look enrollable.
+        const quests = [...QuestsStore.quests.values()].filter(x => {
+            const expiresAt = new Date(x?.config?.expiresAt).getTime();
+            return Number.isFinite(expiresAt) && expiresAt > Date.now();
+        });
         let acceptedCount = 0;
+        let skippedCount = 0;
 
         for (const quest of quests) {
-            // Check if userStatus exists and if enrolledAt is missing
-            if (!quest.userStatus?.enrolledAt) {
-                const questName = quest.config?.messages?.questName || quest.id;
-                console.log(`[ACTION] Enrolling in: ${questName}`);
-                
-                try {
-                    await api.post({ 
-                        url: `/quests/${quest.id}/enroll`, 
-                        body: { location: 13 } 
-                    });
-                    console.log(`[SUCCESS] Enrolled in ${questName}`);
-                    acceptedCount++;
-                } catch (enrollErr) {
-                    const reason = enrollErr.body ? JSON.stringify(enrollErr.body) : enrollErr.message;
-                    console.log(`[ERROR] Failed to enroll in ${questName}. Reason: ${reason}`);
-                }
-                
-                await new Promise(r => setTimeout(r, 1500));
+            if (isCancelled()) {
+                console.log(`[STATUS] Auto-accept cancelled: ${cancelReason()}.`);
+                return;
             }
+
+            if (quest.userStatus?.enrolledAt) {
+                continue;
+            }
+
+            const questName = getQuestName(quest);
+            const taskConfig = quest.config?.taskConfig ?? quest.config?.taskConfigV2;
+            const taskNames = Object.keys(taskConfig?.tasks ?? {});
+
+            if (!taskConfig || taskNames.length === 0) {
+                skippedCount++;
+                console.log(`[SKIP] ${questName} has no supported task configuration.`);
+                continue;
+            }
+
+            console.log(`[ACTION] Enrolling in: ${questName}`);
+            
+            try {
+                const response = await api.post({ 
+                    url: `/quests/${quest.id}/enroll`, 
+                    body: { location: 13 } 
+                });
+                const enrolledAt = response?.body?.enrolled_at ?? response?.body?.user_status?.enrolled_at;
+                console.log(`[SUCCESS] Enrolled in ${questName}${enrolledAt ? ` at ${enrolledAt}` : ""}`);
+                acceptedCount++;
+            } catch (enrollErr) {
+                console.log(`[ERROR] Failed to enroll in ${questName}. ${getErrorDetails(enrollErr)}`);
+            }
+
+            await delay(1500);
         }
 
         if (acceptedCount === 0) {
-            console.log("[STATUS] No new valid quests available to accept.");
+            console.log(skippedCount > 0
+                ? `[STATUS] No new valid quests available to accept. Skipped ${skippedCount} unsupported quest(s).`
+                : "[STATUS] No new valid quests available to accept.");
         } else {
             console.log(`[SUCCESS] Automatically accepted ${acceptedCount} quest(s).`);
         }
@@ -57,6 +114,13 @@ async function autoAcceptQuests() {
     } catch (err) {
         console.log("[ERROR] Auto-Accept failed: " + err.message);
     }
-}
+    }
 
-autoAcceptQuests();
+    try {
+        await autoAcceptQuests();
+    } finally {
+        if (window[stateKey]?.runId === runId) {
+            delete window[stateKey];
+        }
+    }
+})();
