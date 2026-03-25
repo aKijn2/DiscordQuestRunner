@@ -67,6 +67,36 @@
       </Border.Shadow>
 
       <VerticalStackLayout Spacing="15">
+        <Border
+          BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
+          StrokeThickness="1"
+          Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
+          Padding="15,10"
+          Margin="0,0,0,15"
+        >
+          <Border.StrokeShape>
+            <RoundRectangle CornerRadius="12" />
+          </Border.StrokeShape>
+
+          <Grid ColumnDefinitions="*, Auto">
+            <Label
+              Grid.Column="0"
+              Text="AUTO-ACCEPT NEW QUESTS"
+              VerticalOptions="Center"
+              FontSize="12"
+              FontAttributes="Bold"
+              CharacterSpacing="1"
+              TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+            />
+
+            <Switch
+              x:Name="AutoAcceptSwitch"
+              Grid.Column="1"
+              IsToggled="True"
+              OnColor="{StaticResource Magenta}"
+            />
+          </Grid>
+        </Border>
         <Button
           x:Name="RunBtn"
           Clicked="OnRunClicked"

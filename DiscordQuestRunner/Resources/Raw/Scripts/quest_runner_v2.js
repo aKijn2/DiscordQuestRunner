@@ -1,18 +1,15 @@
 // Quest Runner & Claimer Script (V3)
-// Original logic derived from: https://gist.github.com/aamiaa/204cd9d42013ded9faf646fae7f89fbb
 (async function() {
     let internalLog = "";
-    // Redirect console.log
     const console = { log: (msg, ...args) => { internalLog += msg + " " + args.join(" ") + "\n"; } };
     const log = console.log;
 
     try {
         log("--- QUEST RUNNER & CLAIMER (V3) ---");
 
-        // 1. WEBPACK & STORES
         let wpRequire;
         try {
-            wpRequire = webpackChunkdiscord_app.push([[Symbol()], {}, r => r]);
+            wpRequire = window.webpackChunkdiscord_app.push([[Symbol()], {}, r => r]);
             webpackChunkdiscord_app.pop();
         } catch(e) { return "Webpack error: " + e.message; }
 
@@ -36,7 +33,6 @@
             api = Object.values(wpRequire.c).find(x => x?.exports?.tn?.get).exports.tn;
         }
 
-        // 2. CLAIM HELPER
         const claimQuest = async (quest) => {
             const questName = quest.config.messages.questName;
             log(`Claiming reward for: ${questName}...`);
@@ -55,13 +51,11 @@
             }
         };
 
-        // 3. MAIN RUNNER LOGIC (Modified from User Code)
         const supportedTasks = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY", "WATCH_VIDEO_ON_MOBILE"];
         let quests = [...QuestsStore.quests.values()].filter(x => x.userStatus?.enrolledAt && !x.userStatus?.completedAt && new Date(x.config.expiresAt).getTime() > Date.now() && supportedTasks.find(y => Object.keys((x.config.taskConfig ?? x.config.taskConfigV2).tasks).includes(y)));
         
         let isApp = typeof DiscordNative !== "undefined";
         
-        // Claim unclaimed first
         const unclaimed = [...QuestsStore.quests.values()].filter(x => x.userStatus?.completedAt && !x.userStatus?.claimedAt);
         if(unclaimed.length > 0) {
             log(`${unclaimed.length} pending claims found.`);
@@ -112,11 +106,11 @@
                         await api.post({url: `/quests/${quest.id}/video-progress`, body: {timestamp: secondsNeeded}});
                     }
                     log(`Quest completed: ${questName}`);
-                    await claimQuest(quest); // AUTO CLAIM
+                    await claimQuest(quest); 
                     doJob(); 
                 } else if(taskName === "PLAY_ON_DESKTOP") {
                     if(!isApp) {
-                        log(`This no longer works in browser for non-video quests. Use the discord desktop app to complete the ${questName} quest!`);
+                        log(`This no longer works in browser for non-video quests. Use the discord desktop app!`);
                         doJob();
                     } else {
                         api.get({url: `/applications/public?application_ids=${applicationId}`}).then(res => {
@@ -150,23 +144,20 @@
                                 
                                 if(progress >= secondsNeeded) {
                                     log("Quest completed!");
-                                    
                                     RunningGameStore.getRunningGames = realGetRunningGames;
                                     RunningGameStore.getGameForPID = realGetGameForPID;
                                     FluxDispatcher.dispatch({type: "RUNNING_GAMES_CHANGE", removed: [fakeGame], added: [], games: []});
                                     FluxDispatcher.unsubscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                                    
                                     claimQuest(quest).then(() => doJob());
                                 }
                             };
                             FluxDispatcher.subscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                            
                             log(`Spoofed your game to ${applicationName}. Wait for ${Math.ceil((secondsNeeded - secondsDone) / 60)} more minutes.`);
                         });
                     }
                 } else if(taskName === "STREAM_ON_DESKTOP") {
                     if(!isApp) {
-                        log(`This no longer works in browser for non-video quests. Use the discord desktop app to complete the ${questName} quest!`);
+                        log(`This no longer works in browser. Use desktop app!`);
                         doJob();
                     } else {
                         let realFunc = ApplicationStreamingStore.getStreamerActiveStreamMetadata;
@@ -179,41 +170,31 @@
                         let fn = data => {
                             let progress = quest.config.configVersion === 1 ? data.userStatus.streamProgressSeconds : Math.floor(data.userStatus.progress.STREAM_ON_DESKTOP.value);
                             log(`Quest progress: ${progress}/${secondsNeeded}`);
-                            
                             if(progress >= secondsNeeded) {
                                 log("Quest completed!");
-                                
                                 ApplicationStreamingStore.getStreamerActiveStreamMetadata = realFunc;
                                 FluxDispatcher.unsubscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                                
                                 claimQuest(quest).then(() => doJob());
                             }
                         };
                         FluxDispatcher.subscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                        
-                        log(`Spoofed your stream to ${applicationName}. Stream any window in vc for ${Math.ceil((secondsNeeded - secondsDone) / 60)} more minutes.`);
-                        log("Remember that you need at least 1 other person to be in the vc!");
+                        log(`Spoofed stream. Stream in vc for ${Math.ceil((secondsNeeded - secondsDone) / 60)} mins.`);
                     }
                 } else if(taskName === "PLAY_ACTIVITY") {
                     const channelId = ChannelStore.getSortedPrivateChannels()[0]?.id ?? Object.values(GuildChannelStore.getAllGuilds()).find(x => x != null && x.VOCAL.length > 0).VOCAL[0].channel.id;
                     const streamKey = `call:${channelId}:1`;
-                    
                     let fn = async () => {
-                        log(`Completing quest ${questName} - ${quest.config.messages.questName}`);
-                        
+                        log(`Completing activity quest...`);
                         while(true) {
                             const res = await api.post({url: `/quests/${quest.id}/heartbeat`, body: {stream_key: streamKey, terminal: false}});
                             const progress = res.body.progress.PLAY_ACTIVITY.value;
                             log(`Quest progress: ${progress}/${secondsNeeded}`);
-                            
                             await new Promise(resolve => setTimeout(resolve, 20 * 1000));
-                            
                             if(progress >= secondsNeeded) {
                                 await api.post({url: `/quests/${quest.id}/heartbeat`, body: {stream_key: streamKey, terminal: true}});
                                 break;
                             }
                         }
-                        
                         log("Quest completed!");
                         await claimQuest(quest);
                         doJob();
@@ -227,7 +208,6 @@
             doJob();
         }
 
-        // Wait to capture initial logs
         await new Promise(r => setTimeout(r, 2000));
         return internalLog;
 
