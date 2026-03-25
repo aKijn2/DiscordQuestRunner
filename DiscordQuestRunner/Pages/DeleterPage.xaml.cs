@@ -21,7 +21,7 @@ namespace DiscordQuestRunner.Pages
             string title,
             string message,
             string confirmText,
-            string cancelText = null
+            string? cancelText = null
         )
         {
             AlertTitleLbl.Text = title.ToUpper();
