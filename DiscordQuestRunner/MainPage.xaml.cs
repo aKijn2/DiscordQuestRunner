@@ -6,7 +6,9 @@ namespace DiscordQuestRunner
     {
         private readonly DiscordService _discordService;
         private bool _isRunning;
-        private TaskCompletionSource<bool> _alertTcs; // Added for custom alerts
+        
+        // 1. ADDED THE QUESTION MARK HERE TO FIX THE YELLOW WARNING
+        private TaskCompletionSource<bool>? _alertTcs; 
 
         public MainPage(DiscordService discordService)
         {
@@ -155,9 +157,38 @@ namespace DiscordQuestRunner
                 }
 
                 Log(connection.message);
-                Log("Injecting payload...");
 
-                string script = await DiscordService.LoadScriptAsync("quest_runner.js");
+                // --- NEW: AUTO-ACCEPT PROTOCOL ---
+                if (AutoAcceptSwitch.IsToggled)
+                {
+                    Log("Injecting Auto-Accept payload...");
+                    
+                    // 2. CHANGED FILENAME TO _v2.js TO BUST THE CACHE
+                    string autoAcceptScript = await DiscordService.LoadScriptWithDebugBannerAsync(
+                        "auto_accept_v2.js"
+                    );
+
+                    await _discordService.ExecuteScriptAsync(
+                        connection.wsUrl,
+                        autoAcceptScript,
+                        (msg) =>
+                        {
+                            Log("AUTO: " + msg);
+                        }
+                    );
+
+                    await Task.Delay(500);
+                    Log("Auto-Accept sequence completed.");
+                }
+                // ---------------------------------
+
+                Log("Injecting Main Quest Runner payload...");
+
+                // 3. CHANGED FILENAME TO _v2.js TO BUST THE CACHE
+                string script = await DiscordService.LoadScriptWithDebugBannerAsync(
+                    "quest_runner_v2.js"
+                );
+                
                 await _discordService.ExecuteScriptAsync(
                     connection.wsUrl,
                     script,

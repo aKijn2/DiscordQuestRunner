@@ -1,18 +1,57 @@
 // Quest Runner & Claimer Script (V3)
-// Original logic derived from: https://gist.github.com/aamiaa/204cd9d42013ded9faf646fae7f89fbb
 (async function() {
+    const stateKey = "__DQR_QUEST_RUNNER_STATE__";
+    const autoAcceptStateKey = "__DQR_AUTO_ACCEPT_STATE__";
+    const runId = `runner-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const previousState = window[stateKey];
+
+    if (previousState?.cancel) {
+        previousState.cancel("superseded");
+    }
+
+    if (window[autoAcceptStateKey]?.cancel) {
+        window[autoAcceptStateKey].cancel("runner-started");
+    }
+
+    const state = {
+        runId,
+        cancelled: false,
+        reason: null,
+        cancel(reason) {
+            this.cancelled = true;
+            this.reason = reason || "cancelled";
+        }
+    };
+    window[stateKey] = state;
+
     let internalLog = "";
-    // Redirect console.log
     const console = { log: (msg, ...args) => { internalLog += msg + " " + args.join(" ") + "\n"; } };
     const log = console.log;
+    const isCancelled = () => state.cancelled || window[stateKey]?.runId !== runId;
+    const cancelReason = () => state.reason || "superseded";
+    const getQuestName = (quest) => quest?.config?.messages?.questName || quest?.config?.application?.name || quest?.id || "Unknown Quest";
+    const getErrorDetails = (error) => {
+        if (!error) return "Unknown error";
+
+        const parts = [];
+        if (error.status != null) parts.push(`status=${error.status}`);
+        if (error.message) parts.push(`message=${error.message}`);
+        if (error.body) parts.push(`body=${JSON.stringify(error.body)}`);
+
+        return parts.length > 0 ? parts.join(" | ") : String(error);
+    };
 
     try {
         log("--- QUEST RUNNER & CLAIMER (V3) ---");
 
-        // 1. WEBPACK & STORES
+        if (isCancelled()) {
+            log(`[STATUS] Runner cancelled: ${cancelReason()}.`);
+            return internalLog;
+        }
+
         let wpRequire;
         try {
-            wpRequire = webpackChunkdiscord_app.push([[Symbol()], {}, r => r]);
+            wpRequire = window.webpackChunkdiscord_app.push([[Symbol()], {}, r => r]);
             webpackChunkdiscord_app.pop();
         } catch(e) { return "Webpack error: " + e.message; }
 
@@ -36,9 +75,8 @@
             api = Object.values(wpRequire.c).find(x => x?.exports?.tn?.get).exports.tn;
         }
 
-        // 2. CLAIM HELPER
         const claimQuest = async (quest) => {
-            const questName = quest.config.messages.questName;
+            const questName = getQuestName(quest);
             log(`Claiming reward for: ${questName}...`);
             try {
                 await api.post({
@@ -50,22 +88,27 @@
                 if(e.body && (e.body.code === 50035 || e.body.captcha_key)) {
                     log(`CAPTCHA REQUIRED for ${questName}. (Manual action needed)`);
                 } else {
-                    log(`Claim failed: ${e.message}`);
+                    log(`Claim failed: ${getErrorDetails(e)}`);
                 }
             }
         };
 
-        // 3. MAIN RUNNER LOGIC (Modified from User Code)
         const supportedTasks = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY", "WATCH_VIDEO_ON_MOBILE"];
         let quests = [...QuestsStore.quests.values()].filter(x => x.userStatus?.enrolledAt && !x.userStatus?.completedAt && new Date(x.config.expiresAt).getTime() > Date.now() && supportedTasks.find(y => Object.keys((x.config.taskConfig ?? x.config.taskConfigV2).tasks).includes(y)));
         
         let isApp = typeof DiscordNative !== "undefined";
         
-        // Claim unclaimed first
         const unclaimed = [...QuestsStore.quests.values()].filter(x => x.userStatus?.completedAt && !x.userStatus?.claimedAt);
         if(unclaimed.length > 0) {
             log(`${unclaimed.length} pending claims found.`);
-            for(const q of unclaimed) { await claimQuest(q); await new Promise(r => setTimeout(r, 1000)); }
+            for(const q of unclaimed) {
+                if (isCancelled()) {
+                    log(`[STATUS] Runner cancelled: ${cancelReason()}.`);
+                    return internalLog;
+                }
+                await claimQuest(q);
+                await new Promise(r => setTimeout(r, 1000));
+            }
         }
 
         if(quests.length === 0) {
@@ -73,6 +116,11 @@
         } else {
             log(`${quests.length} active quests found. Starting runner...`);
             let doJob = async function() {
+                if (isCancelled()) {
+                    log(`[STATUS] Runner cancelled: ${cancelReason()}.`);
+                    return internalLog;
+                }
+
                 const quest = quests.pop();
                 if(!quest) {
                     log("All jobs done.");
@@ -82,7 +130,7 @@
                 const pid = Math.floor(Math.random() * 30000) + 1000;
                 const applicationId = quest.config.application.id;
                 const applicationName = quest.config.application.name;
-                const questName = quest.config.messages.questName;
+                const questName = getQuestName(quest);
                 const taskConfig = quest.config.taskConfig ?? quest.config.taskConfigV2;
                 const taskName = supportedTasks.find(x => taskConfig.tasks[x] != null);
                 const secondsNeeded = taskConfig.tasks[taskName].target;
@@ -96,6 +144,11 @@
                     let completed = false;
                     
                     while(true) {
+                        if (isCancelled()) {
+                            log(`[STATUS] Runner cancelled: ${cancelReason()}.`);
+                            return internalLog;
+                        }
+
                         const maxAllowed = Math.floor((Date.now() - enrolledAt)/1000) + maxFuture;
                         const diff = maxAllowed - secondsDone;
                         const timestamp = secondsDone + speed;
@@ -112,11 +165,11 @@
                         await api.post({url: `/quests/${quest.id}/video-progress`, body: {timestamp: secondsNeeded}});
                     }
                     log(`Quest completed: ${questName}`);
-                    await claimQuest(quest); // AUTO CLAIM
+                    await claimQuest(quest); 
                     doJob(); 
                 } else if(taskName === "PLAY_ON_DESKTOP") {
                     if(!isApp) {
-                        log(`This no longer works in browser for non-video quests. Use the discord desktop app to complete the ${questName} quest!`);
+                        log(`This no longer works in browser for non-video quests. Use the discord desktop app!`);
                         doJob();
                     } else {
                         api.get({url: `/applications/public?application_ids=${applicationId}`}).then(res => {
@@ -150,23 +203,23 @@
                                 
                                 if(progress >= secondsNeeded) {
                                     log("Quest completed!");
-                                    
                                     RunningGameStore.getRunningGames = realGetRunningGames;
                                     RunningGameStore.getGameForPID = realGetGameForPID;
                                     FluxDispatcher.dispatch({type: "RUNNING_GAMES_CHANGE", removed: [fakeGame], added: [], games: []});
                                     FluxDispatcher.unsubscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                                    
                                     claimQuest(quest).then(() => doJob());
                                 }
                             };
                             FluxDispatcher.subscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                            
                             log(`Spoofed your game to ${applicationName}. Wait for ${Math.ceil((secondsNeeded - secondsDone) / 60)} more minutes.`);
+                        }).catch(error => {
+                            log(`Failed to load application data for ${questName}: ${getErrorDetails(error)}`);
+                            doJob();
                         });
                     }
                 } else if(taskName === "STREAM_ON_DESKTOP") {
                     if(!isApp) {
-                        log(`This no longer works in browser for non-video quests. Use the discord desktop app to complete the ${questName} quest!`);
+                        log(`This no longer works in browser. Use desktop app!`);
                         doJob();
                     } else {
                         let realFunc = ApplicationStreamingStore.getStreamerActiveStreamMetadata;
@@ -179,43 +232,42 @@
                         let fn = data => {
                             let progress = quest.config.configVersion === 1 ? data.userStatus.streamProgressSeconds : Math.floor(data.userStatus.progress.STREAM_ON_DESKTOP.value);
                             log(`Quest progress: ${progress}/${secondsNeeded}`);
-                            
                             if(progress >= secondsNeeded) {
                                 log("Quest completed!");
-                                
                                 ApplicationStreamingStore.getStreamerActiveStreamMetadata = realFunc;
                                 FluxDispatcher.unsubscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                                
                                 claimQuest(quest).then(() => doJob());
                             }
                         };
                         FluxDispatcher.subscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                        
-                        log(`Spoofed your stream to ${applicationName}. Stream any window in vc for ${Math.ceil((secondsNeeded - secondsDone) / 60)} more minutes.`);
-                        log("Remember that you need at least 1 other person to be in the vc!");
+                        log(`Spoofed stream. Stream in vc for ${Math.ceil((secondsNeeded - secondsDone) / 60)} mins.`);
                     }
                 } else if(taskName === "PLAY_ACTIVITY") {
                     const channelId = ChannelStore.getSortedPrivateChannels()[0]?.id ?? Object.values(GuildChannelStore.getAllGuilds()).find(x => x != null && x.VOCAL.length > 0).VOCAL[0].channel.id;
                     const streamKey = `call:${channelId}:1`;
-                    
                     let fn = async () => {
-                        log(`Completing quest ${questName} - ${quest.config.messages.questName}`);
-                        
-                        while(true) {
-                            const res = await api.post({url: `/quests/${quest.id}/heartbeat`, body: {stream_key: streamKey, terminal: false}});
-                            const progress = res.body.progress.PLAY_ACTIVITY.value;
-                            log(`Quest progress: ${progress}/${secondsNeeded}`);
-                            
-                            await new Promise(resolve => setTimeout(resolve, 20 * 1000));
-                            
-                            if(progress >= secondsNeeded) {
-                                await api.post({url: `/quests/${quest.id}/heartbeat`, body: {stream_key: streamKey, terminal: true}});
-                                break;
+                        log(`Completing activity quest...`);
+                        try {
+                            while(true) {
+                                if (isCancelled()) {
+                                    log(`[STATUS] Runner cancelled: ${cancelReason()}.`);
+                                    return;
+                                }
+
+                                const res = await api.post({url: `/quests/${quest.id}/heartbeat`, body: {stream_key: streamKey, terminal: false}});
+                                const progress = res.body.progress.PLAY_ACTIVITY.value;
+                                log(`Quest progress: ${progress}/${secondsNeeded}`);
+                                await new Promise(resolve => setTimeout(resolve, 20 * 1000));
+                                if(progress >= secondsNeeded) {
+                                    await api.post({url: `/quests/${quest.id}/heartbeat`, body: {stream_key: streamKey, terminal: true}});
+                                    break;
+                                }
                             }
+                            log("Quest completed!");
+                            await claimQuest(quest);
+                        } catch (error) {
+                            log(`Activity quest failed for ${questName}: ${getErrorDetails(error)}`);
                         }
-                        
-                        log("Quest completed!");
-                        await claimQuest(quest);
                         doJob();
                     };
                     fn();
@@ -227,9 +279,13 @@
             doJob();
         }
 
-        // Wait to capture initial logs
         await new Promise(r => setTimeout(r, 2000));
         return internalLog;
 
     } catch(e) { return "Global Error: " + e.message; }
+    finally {
+        if (window[stateKey]?.runId === runId) {
+            delete window[stateKey];
+        }
+    }
 })();
