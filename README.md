@@ -123,7 +123,7 @@ Try this:
 
 ### Option 1: Download a release
 
-1. Download the latest `DiscordQuestRunner-Win64.zip` from [Releases](https://github.com/aKijn2/DiscordQuestRunner/releases/tag/v1.0.0).
+1. Download the latest `DiscordQuestRunner-Win64.zip` from [Releases](https://github.com/aKijn2/DiscordQuestRunner/releases).
 2. Extract it.
 3. Run `DiscordQuestRunner.exe`.
 
