@@ -21,7 +21,7 @@ namespace DiscordQuestRunner
             builder.Services.AddTransient<MainPage>();
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

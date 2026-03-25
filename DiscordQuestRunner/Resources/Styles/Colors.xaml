@@ -1,79 +1,79 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
-<ResourceDictionary 
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+>
+  <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
 
-    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+  <Color x:Key="Primary">#512BD4</Color>
+  <Color x:Key="PrimaryDark">#ac99ea</Color>
+  <Color x:Key="PrimaryDarkText">#242424</Color>
+  <Color x:Key="Secondary">#DFD8F7</Color>
+  <Color x:Key="SecondaryDarkText">#9880e5</Color>
+  <Color x:Key="Tertiary">#2B0B98</Color>
 
-    <Color x:Key="Primary">#512BD4</Color>
-    <Color x:Key="PrimaryDark">#ac99ea</Color>
-    <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="Secondary">#DFD8F7</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
-    <Color x:Key="Tertiary">#2B0B98</Color>
+  <Color x:Key="White">White</Color>
+  <Color x:Key="Black">Black</Color>
+  <Color x:Key="Magenta">#D600AA</Color>
+  <Color x:Key="MidnightBlue">#190649</Color>
+  <Color x:Key="OffBlack">#1f1f1f</Color>
 
-    <Color x:Key="White">White</Color>
-    <Color x:Key="Black">Black</Color>
-    <Color x:Key="Magenta">#D600AA</Color>
-    <Color x:Key="MidnightBlue">#190649</Color>
-    <Color x:Key="OffBlack">#1f1f1f</Color>
+  <Color x:Key="Gray100">#E1E1E1</Color>
+  <Color x:Key="Gray200">#C8C8C8</Color>
+  <Color x:Key="Gray300">#ACACAC</Color>
+  <Color x:Key="Gray400">#919191</Color>
+  <Color x:Key="Gray500">#6E6E6E</Color>
+  <Color x:Key="Gray600">#404040</Color>
+  <Color x:Key="Gray900">#212121</Color>
+  <Color x:Key="Gray950">#141414</Color>
 
-    <Color x:Key="Gray100">#E1E1E1</Color>
-    <Color x:Key="Gray200">#C8C8C8</Color>
-    <Color x:Key="Gray300">#ACACAC</Color>
-    <Color x:Key="Gray400">#919191</Color>
-    <Color x:Key="Gray500">#6E6E6E</Color>
-    <Color x:Key="Gray600">#404040</Color>
-    <Color x:Key="Gray900">#212121</Color>
-    <Color x:Key="Gray950">#141414</Color>
+  <!-- App-specific theme colors (Discord-inspired dark) -->
+  <Color x:Key="PageBgLight">White</Color>
+  <Color x:Key="PageBgDark">#1a1a2e</Color>
+  <Color x:Key="CardBgLight">White</Color>
+  <Color x:Key="CardBgDark">#16213e</Color>
+  <Color x:Key="TextPrimaryLight">Black</Color>
+  <Color x:Key="TextPrimaryDark">#e0e0e0</Color>
+  <Color x:Key="TextSecondaryLight">#666666</Color>
+  <Color x:Key="TextSecondaryDark">#9a9ab0</Color>
+  <Color x:Key="TextMutedLight">#999999</Color>
+  <Color x:Key="TextMutedDark">#5c5c7a</Color>
+  <Color x:Key="AccentLight">Black</Color>
+  <Color x:Key="AccentDark">#e0e0e0</Color>
+  <Color x:Key="BorderLight">Black</Color>
+  <Color x:Key="BorderDark">#3a3a5c</Color>
+  <Color x:Key="BtnPrimaryBgLight">Black</Color>
+  <Color x:Key="BtnPrimaryBgDark">#5865F2</Color>
+  <Color x:Key="BtnPrimaryTextLight">White</Color>
+  <Color x:Key="BtnPrimaryTextDark">White</Color>
+  <Color x:Key="BtnSecondaryBgLight">White</Color>
+  <Color x:Key="BtnSecondaryBgDark">#2a2a4a</Color>
+  <Color x:Key="BtnSecondaryTextLight">Black</Color>
+  <Color x:Key="BtnSecondaryTextDark">#e0e0e0</Color>
+  <Color x:Key="EntryBgLight">#F5F5F5</Color>
+  <Color x:Key="EntryBgDark">#0f3460</Color>
+  <Color x:Key="EntryTextLight">Black</Color>
+  <Color x:Key="EntryTextDark">#e0e0e0</Color>
+  <Color x:Key="PlaceholderLight">#757575</Color>
+  <Color x:Key="PlaceholderDark">#6a6a8a</Color>
+  <Color x:Key="DividerLight">Black</Color>
+  <Color x:Key="DividerDark">#5865F2</Color>
+  <Color x:Key="SpinnerLight">Black</Color>
+  <Color x:Key="SpinnerDark">#5865F2</Color>
 
-    <!-- App-specific theme colors (Discord-inspired dark) -->
-    <Color x:Key="PageBgLight">White</Color>
-    <Color x:Key="PageBgDark">#1a1a2e</Color>
-    <Color x:Key="CardBgLight">White</Color>
-    <Color x:Key="CardBgDark">#16213e</Color>
-    <Color x:Key="TextPrimaryLight">Black</Color>
-    <Color x:Key="TextPrimaryDark">#e0e0e0</Color>
-    <Color x:Key="TextSecondaryLight">#666666</Color>
-    <Color x:Key="TextSecondaryDark">#9a9ab0</Color>
-    <Color x:Key="TextMutedLight">#999999</Color>
-    <Color x:Key="TextMutedDark">#5c5c7a</Color>
-    <Color x:Key="AccentLight">Black</Color>
-    <Color x:Key="AccentDark">#e0e0e0</Color>
-    <Color x:Key="BorderLight">Black</Color>
-    <Color x:Key="BorderDark">#3a3a5c</Color>
-    <Color x:Key="BtnPrimaryBgLight">Black</Color>
-    <Color x:Key="BtnPrimaryBgDark">#5865F2</Color>
-    <Color x:Key="BtnPrimaryTextLight">White</Color>
-    <Color x:Key="BtnPrimaryTextDark">White</Color>
-    <Color x:Key="BtnSecondaryBgLight">White</Color>
-    <Color x:Key="BtnSecondaryBgDark">#2a2a4a</Color>
-    <Color x:Key="BtnSecondaryTextLight">Black</Color>
-    <Color x:Key="BtnSecondaryTextDark">#e0e0e0</Color>
-    <Color x:Key="EntryBgLight">#F5F5F5</Color>
-    <Color x:Key="EntryBgDark">#0f3460</Color>
-    <Color x:Key="EntryTextLight">Black</Color>
-    <Color x:Key="EntryTextDark">#e0e0e0</Color>
-    <Color x:Key="PlaceholderLight">#757575</Color>
-    <Color x:Key="PlaceholderDark">#6a6a8a</Color>
-    <Color x:Key="DividerLight">Black</Color>
-    <Color x:Key="DividerDark">#5865F2</Color>
-    <Color x:Key="SpinnerLight">Black</Color>
-    <Color x:Key="SpinnerDark">#5865F2</Color>
+  <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
+  <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
+  <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}" />
+  <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}" />
+  <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}" />
 
-    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
-    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
-    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
-    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
-    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
-
-    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
-    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
-    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
-    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
-    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
-    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
-    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
-    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+  <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}" />
+  <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}" />
+  <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}" />
+  <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}" />
+  <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}" />
+  <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}" />
+  <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}" />
+  <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}" />
 </ResourceDictionary>
