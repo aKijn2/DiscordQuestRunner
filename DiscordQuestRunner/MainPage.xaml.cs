@@ -69,14 +69,17 @@ namespace DiscordQuestRunner
             {
                 Page = new Pages.DeleterPage(_discordService),
                 Title = "Discord Message Deleter",
+
+                // Pin all dimensions for the deleter window
                 Width = 550,
                 Height = 650,
-                MinimumWidth = 450,
-                MinimumHeight = 550,
+                MinimumWidth = 550,
+                MaximumWidth = 550,
+                MinimumHeight = 650,
+                MaximumHeight = 650,
             };
             Application.Current?.OpenWindow(deleterWindow);
 #else
-            // Updated to use custom alert
             _ = ShowNexusAlertAsync(
                 "SYSTEM ERROR",
                 "This feature only works on Windows architecture.",
