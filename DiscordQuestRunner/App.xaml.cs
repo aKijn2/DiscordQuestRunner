@@ -13,11 +13,13 @@
         protected override Window CreateWindow(IActivationState? activationState)
         {
             var mainPage = _serviceProvider.GetRequiredService<MainPage>();
-            var window = new Window(mainPage)
+
+            // Wrap the main page in a NavigationPage
+            var navPage = new NavigationPage(mainPage);
+
+            var window = new Window(navPage)
             {
                 Title = "Discord Quest Runner",
-
-                // Pin all dimensions to the exact same size
                 Width = 500,
                 Height = 700,
                 MinimumWidth = 500,

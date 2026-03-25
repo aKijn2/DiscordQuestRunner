@@ -62,25 +62,13 @@ namespace DiscordQuestRunner
 
         // --------------------------
 
-        private void OnOpenDeleterClicked(object sender, EventArgs e)
+        private async void OnOpenDeleterClicked(object sender, EventArgs e)
         {
 #if WINDOWS
-            var deleterWindow = new Window
-            {
-                Page = new Pages.DeleterPage(_discordService),
-                Title = "Discord Message Deleter",
-
-                // Pin all dimensions for the deleter window
-                Width = 550,
-                Height = 650,
-                MinimumWidth = 550,
-                MaximumWidth = 550,
-                MinimumHeight = 650,
-                MaximumHeight = 650,
-            };
-            Application.Current?.OpenWindow(deleterWindow);
+            // Instead of opening a new window, slide the new page into the current window
+            await Navigation.PushAsync(new Pages.DeleterPage(_discordService));
 #else
-            _ = ShowNexusAlertAsync(
+            await ShowNexusAlertAsync(
                 "SYSTEM ERROR",
                 "This feature only works on Windows architecture.",
                 "ACKNOWLEDGE"
