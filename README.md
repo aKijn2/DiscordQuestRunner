@@ -25,19 +25,16 @@ Discord Quest Runner can:
 2. **Open the Quests page manually**  
    Go to Discord's **Quests** section and wait a few seconds for the quest list to load.
 
-3. **Keep Discord open**  
-   Do not close Discord while a quest is being accepted or progressed.
-
-4. **Launch the app**  
+3. **Launch the app**  
    Open `DiscordQuestRunner.exe`.
 
-5. **Run the tool**  
+4. **Run the tool**  
    Click **INITIALIZE QUESTS**.
 
-6. **Let auto-accept run first**  
+5. **Let auto-accept run first**  
    If **Auto Accept** is enabled, the app will try to enroll in all valid visible quests for the current account.
 
-7. **Let the runner continue**  
+6. **Let the runner continue**  
    After enrollment, the runner looks for enrolled, incomplete quests and starts supported flows.
 
 ---
@@ -47,7 +44,6 @@ Discord Quest Runner can:
 - **Open the Quests page before every run.** This is required for consistent results.
 - **Use the Discord desktop app.** Some quest types do not work correctly in the browser.
 - **Quest availability is account-dependent.** One account may have valid quests while another has none.
-- **Do not close Discord during progression.** Doing so can interrupt progress updates.
 - **Captcha is still manual.** If Discord asks for a captcha, you must solve it yourself.
 
 ---
