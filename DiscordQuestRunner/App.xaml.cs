@@ -13,15 +13,14 @@
         protected override Window CreateWindow(IActivationState? activationState)
         {
             var mainPage = _serviceProvider.GetRequiredService<MainPage>();
-            var window = new Window(mainPage);
-            
-            const int defaultWidth = 500;
-            const int defaultHeight = 700;
-
-            window.Width = defaultWidth;
-            window.Height = defaultHeight;
-            window.MinimumWidth = 400;
-            window.MinimumHeight = 500;
+            var window = new Window(mainPage)
+            {
+                Title = "Discord Quest Runner", // Adds a clean title to the window
+                Width = 500,
+                Height = 700,
+                MinimumWidth = 450, // Slightly wider minimum so our UI never squishes
+                MinimumHeight = 600
+            };
             
             return window;
         }
