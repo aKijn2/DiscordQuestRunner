@@ -1,57 +1,81 @@
-# TODO
+***
 
-- Refactor the code
-- Add comments in the code (difficult parts only)
-- Fix the program, not working because of the new discord update. 
+# ⚡ Discord Quest Runner [NEXUS]
 
-# QUEST AUTOMATION
+> A premium, high-performance command center for Discord automation. Securely claim quest rewards and execute precise message cleanup protocols via a dedicated local WebSocket tunnel.
 
-Advanced minimalist suite for Discord automation, providing secure quest rewards claiming and message cleanup protocols.
+Built on **.NET MAUI 9.0**, this application interfaces directly with the official Discord desktop client using the Chrome DevTools Protocol (CDP). It provides safe, real-time script injection within a sleek, distraction-free workspace.
 
-This project is a high-performance .NET MAUI application that interfaces with the Discord client via the WebSocket Debug protocol. It enables safe, real-time script injection within a distraction-free, black-and-white workspace.
+---
 
-## Features
+## 🚀 Core Features
 
-### Quest Runner
-- Full Automation: Handles Game and Streaming missions without manual intervention.
-- Secure Claiming: Automatically secures rewards upon successful quest completion.
-- CDP Injection: Uses the standard Discord Debug protocol for stable execution.
+### 🎮 Quest Automator
+* **Hands-Free Execution:** Fully automates Game and Streaming missions without requiring manual user intervention.
+* **Secure Claiming:** Automatically secures and redeems rewards the moment a quest completion sequence is validated.
+* **CDP Injection:** Utilizes Discord's native Debug protocol for stable, seamless, and untraceable execution.
 
-### Message Deleter
-- Granular Purge: Target specific users within any channel for thorough cleanup.
-- Responsive Logic: Double-confirmation workflow (Count then Purge) ensures data safety.
-- Real-time Stream: Monitoring console provides instant feedback for every neutralized message.
-- Emergency Abort: Immediate halt functionality to terminate operations mid-process.
+### 🗑️ Message Purge Protocol
+* **Granular Targeting:** Isolate and target specific user IDs within any channel for thorough, precise cleanup.
+* **Failsafe Logic:** Features a strict double-confirmation workflow (Analyze & Count -> Confirm -> Purge) to ensure data safety.
+* **Real-Time Telemetry:** The built-in terminal provides instant, line-by-line feedback for every neutralized message.
+* **Emergency Abort:** Immediate halt functionality allows the user to terminate the deletion sequence mid-process.
 
-## Interface
+---
 
-### Quest Runner
-![Quest Runner Interface](DiscordQuestRunner/questpage.png)
+## ⚙️ System Requirements
 
-### Message Deleter
-![Message Deleter Interface](DiscordQuestRunner/deletionpage.png)
+* **OS:** Windows 10 or Windows 11 (64-bit architecture)
+* **Client:** Official Discord Desktop Application (PTB or Canary also supported)
+* **Framework:** .NET 9.0 SDK (for compilation)
 
-## Guide
+---
 
-1. Launch the application workspace (dotnet run -f net9.0-windows10.0.19041.0) - NOT PUBLISHED YET.
-2. Choose your protocol from the main dashboard.
-3. For Automated Quests, click "RUN AUTOMATION".
-4. For Message Cleanup, input the target IDs and click "START PURGE".
-5. Confirm the system's request to interface with Discord via Debug mode if prompted.
-6. Monitor the operational stream via the real-time terminal window.
+## 🛠️ Getting Started
 
-## System Requirements
+Currently, the application must be compiled and run locally.
 
-- Windows 10 or 11 (64-bit)
-- Discord Desktop Application (Official Build)
+**1. Clone the repository and navigate to the project folder:**
+```bash
+git clone https://github.com/yourusername/DiscordQuestRunner.git
+cd DiscordQuestRunner
+```
 
-## Technical Stack
+**2. Launch the application workspace:**
+```bash
+dotnet run -f net9.0-windows10.0.19041.0
+```
 
-- Backend: C# / .NET MAUI
-- Logic: JavaScript (Chrome DevTools Protocol execution)
-- Interface: XAML / Minimalist Vector Design
-- Connection: Local WebSocket Tunnel (Discord Debug Bridge)
+**3. Operational Guide:**
+* Select your desired protocol (Quest Runner or Message Purge) from the main dashboard.
+* **For Quests:** Click `INITIALIZE QUESTS`.
+* **For Purge:** Input the target `CHANNEL_ID` and `USER_ID`, then click `START PURGE`.
+* If prompted by the Nexus system alert, authorize the restart of Discord in Debug Mode.
+* Monitor the operation telemetry via the real-time terminal window.
 
-## Credits
+---
 
-- Original quest runner script logic by [aamiaa](https://gist.github.com/aamiaa/204cd9d42013ded9faf646fae7f89fbb)
+## 💻 Technical Stack
+
+* **Architecture:** C# / .NET MAUI 9
+* **Execution Logic:** JavaScript (CDP Payload)
+* **Interface:** XAML (Custom Nexus UI / Float-Card Design)
+* **Bridge:** Local WebSocket Tunnel (`ws://127.0.0.1:9222`)
+
+---
+
+## 🗺️ Roadmap / Known Issues
+
+- [ ] **Codebase Refactor:** Clean up and modularize service injections.
+- [ ] **Documentation:** Add XML comments to complex bridging and CDP handshake logic.
+- [ ] **Persistence:** Add local storage for target IDs to prevent repetitive typing.
+
+---
+
+## 📜 Credits
+
+* Original quest runner script logic inspired by [aamiaa's gist](https://gist.github.com/aamiaa/204cd9d42013ded9faf646fae7f89fbb).
+
+
+---
+*Disclaimer: This application interacts with the Discord client via debug ports. Use responsibly and in accordance with Discord's Terms of Service.*
