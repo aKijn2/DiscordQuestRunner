@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes; // Added for cleaner JSON parsing
 
 namespace DiscordQuestRunner.Services
 {
@@ -17,6 +18,12 @@ namespace DiscordQuestRunner.Services
 
         private const int DEBUG_PORT = 9222;
         private const string DEBUG_URL = "http://127.0.0.1:9222";
+
+        // 1. Singleton HttpClient to prevent socket exhaustion
+        private static readonly HttpClient _httpClient = new()
+        {
+            Timeout = TimeSpan.FromSeconds(3),
+        };
 
         /// <summary>
         /// Loads a JavaScript file from the app's bundled Resources/Raw/Scripts folder.
@@ -37,51 +44,66 @@ namespace DiscordQuestRunner.Services
             {
                 Process[] processes = Process.GetProcessesByName("Discord");
                 if (processes.Length == 0)
-                    return (false, false, "Discord process not found.");
+                    return (false, false, "Discord process not found in system memory.");
 
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
-                var response = await client.GetAsync($"{DEBUG_URL}/json/version");
+                var response = await _httpClient.GetAsync($"{DEBUG_URL}/json/version");
                 if (!response.IsSuccessStatusCode)
-                    return (false, true, "Debug port unreachable. Discord restart required.");
+                    return (false, true, "Debug port blocked or inactive. Restart required.");
 
-                return (true, true, "Debug port accessible.");
+                return (true, true, "Debug port verified and active.");
             }
             catch
             {
-                return (false, true, "Debug port 9222 unreachable.");
+                return (false, true, $"Debug port {DEBUG_PORT} unreachable.");
             }
         }
 
         /// <summary>
         /// Kills Discord and restarts it with the remote debugging port enabled.
         /// </summary>
-        public async Task<(bool success, string message)> RestartDiscordAsync(Action<string>? onLog = null)
+        public async Task<(bool success, string message)> RestartDiscordAsync(
+            Action<string>? onLog = null
+        )
         {
             try
             {
+                // 2. Aggressive process termination (kills the whole process tree)
                 Process[] processes = Process.GetProcessesByName("Discord");
                 foreach (var p in processes)
                 {
-                    try { p.Kill(); } catch { }
+                    try
+                    {
+                        p.Kill(entireProcessTree: true);
+                    }
+                    catch
+                    { /* Ignore access denied on ghost processes */
+                    }
                 }
-                await Task.Delay(1500);
+
+                // Give Windows a moment to release file locks
+                await Task.Delay(2000);
 
                 string discordPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord");
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Discord"
+                );
+
                 if (!Directory.Exists(discordPath))
-                    return (false, "Discord installation path not found.");
+                    return (false, "Discord installation directory not found.");
 
                 var appDirs = Directory.GetDirectories(discordPath, "app-*");
                 if (appDirs.Length == 0)
-                    return (false, "No Discord version folder found.");
+                    return (false, "No valid Discord version folder found.");
 
                 string latestApp = appDirs.OrderByDescending(d => d).First();
                 string exePath = Path.Combine(latestApp, "Discord.exe");
-                if (!File.Exists(exePath))
-                    return (false, $"Discord.exe not found at: {exePath}");
 
+                if (!File.Exists(exePath))
+                    return (false, $"Discord executable missing at: {exePath}");
+
+                // Launch with remote debugging
                 Process.Start(exePath, $"--remote-debugging-port={DEBUG_PORT}");
-                onLog?.Invoke($"Restarting: {exePath}");
+                onLog?.Invoke($"[SYS] Executing: {exePath}");
 
                 // Poll until debug port becomes available
                 for (int i = 0; i < 15; i++)
@@ -89,14 +111,14 @@ namespace DiscordQuestRunner.Services
                     await Task.Delay(1000);
                     var check = await CheckDebugPortAsync();
                     if (check.isReady)
-                        return (true, "Discord restarted with debug port enabled.");
+                        return (true, "Discord successfully rebooted in Debug Mode.");
                 }
 
-                return (false, "Discord restarted but debug port did not become available in time.");
+                return (false, "Discord restarted, but debug port initialization timed out.");
             }
             catch (Exception ex)
             {
-                return (false, $"Restart failed: {ex.Message}");
+                return (false, $"Restart protocol failed: {ex.Message}");
             }
         }
 
@@ -107,49 +129,50 @@ namespace DiscordQuestRunner.Services
         {
             try
             {
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-                string json = await client.GetStringAsync($"{DEBUG_URL}/json");
+                string json = await _httpClient.GetStringAsync($"{DEBUG_URL}/json");
                 var pages = JsonSerializer.Deserialize<List<CdpResponse>>(json);
 
                 if (pages == null || pages.Count == 0)
-                    return (false, "No CDP targets found.", "");
+                    return (false, "No active CDP targets found.", "");
 
-                // 1. Filter to pages, exclude DevTools
                 var candidates = pages
-                    .Where(p => p.type == "page"
+                    .Where(p =>
+                        p.type == "page"
                         && !string.IsNullOrEmpty(p.webSocketDebuggerUrl)
-                        && !(p.url?.StartsWith("devtools://") ?? false))
+                        && !(p.url?.StartsWith("devtools://") ?? false)
+                    )
                     .ToList();
 
-                // 2. Prioritize "Discord" title or main channels URL
                 var page = candidates.FirstOrDefault(p =>
-                    p.title == "Discord" || (p.url?.Contains("/channels/") ?? false));
-
-                // 3. Fallback to any non-devtools page
+                    p.title == "Discord" || (p.url?.Contains("/channels/") ?? false)
+                );
                 page ??= candidates.FirstOrDefault();
-
-                // 4. Last resort: any target with "Discord" in title
                 page ??= pages.FirstOrDefault(p =>
                     p.title?.Contains("Discord") == true
                     && !(p.url?.StartsWith("devtools://") ?? false)
-                    && !string.IsNullOrEmpty(p.webSocketDebuggerUrl));
+                    && !string.IsNullOrEmpty(p.webSocketDebuggerUrl)
+                );
 
                 if (page == null)
-                    return (false, "No valid Discord target found. Make sure Discord is open.", "");
+                    return (false, "No valid Discord interface target located.", "");
 
-                string targetInfo = $"{page.type} - {page.title}";
-                return (true, $"Attached to: {targetInfo}", page.webSocketDebuggerUrl!);
+                return (true, $"Attached to target: {page.title}", page.webSocketDebuggerUrl!);
             }
             catch (Exception ex)
             {
-                return (false, $"Connection failed: {ex.Message}", "");
+                return (false, $"Handshake failed: {ex.Message}", "");
             }
         }
 
         /// <summary>
         /// Executes a JavaScript script via CDP WebSocket with proper message framing.
         /// </summary>
-        public async Task ExecuteScriptAsync(string wsUrl, string script, Action<string> onLog, CancellationToken cancellationToken = default)
+        public async Task ExecuteScriptAsync(
+            string wsUrl,
+            string script,
+            Action<string> onLog,
+            CancellationToken cancellationToken = default
+        )
         {
             using var ws = new ClientWebSocket();
             await ws.ConnectAsync(new Uri(wsUrl), cancellationToken);
@@ -158,72 +181,75 @@ namespace DiscordQuestRunner.Services
             await SendCommandAsync(ws, 1, "Runtime.enable", new { }, cancellationToken);
 
             // Execute the script
-            await SendCommandAsync(ws, 100, "Runtime.evaluate", new
-            {
-                expression = script,
-                awaitPromise = true
-            }, cancellationToken);
+            await SendCommandAsync(
+                ws,
+                100,
+                "Runtime.evaluate",
+                new { expression = script, awaitPromise = true },
+                cancellationToken
+            );
 
-            var buffer = new byte[1024 * 8];
+            var buffer = new byte[1024 * 16]; // Increased buffer size for larger data payloads
 
             while (ws.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
             {
-                // Accumulate WebSocket fragments into a complete message
                 using var ms = new MemoryStream();
                 WebSocketReceiveResult result;
                 do
                 {
-                    result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
-                    if (result.MessageType == WebSocketMessageType.Close) break;
+                    result = await ws.ReceiveAsync(
+                        new ArraySegment<byte>(buffer),
+                        cancellationToken
+                    );
+                    if (result.MessageType == WebSocketMessageType.Close)
+                        break;
                     ms.Write(buffer, 0, result.Count);
                 } while (!result.EndOfMessage);
 
-                if (result.MessageType == WebSocketMessageType.Close) break;
+                if (result.MessageType == WebSocketMessageType.Close)
+                    break;
 
                 string responseJson = Encoding.UTF8.GetString(ms.ToArray());
 
                 try
                 {
-                    using JsonDocument doc = JsonDocument.Parse(responseJson);
-                    var root = doc.RootElement;
+                    // 3. Upgraded to JsonNode for much cleaner, null-safe parsing
+                    var root = JsonNode.Parse(responseJson);
+                    if (root == null)
+                        continue;
 
-                    // Handle Console Logs (Real-time)
-                    if (root.TryGetProperty("method", out var method)
-                        && method.GetString() == "Runtime.consoleAPICalled")
+                    string? method = root["method"]?.ToString();
+                    int? id = root["id"]?.GetValue<int>();
+
+                    // Handle Real-time Console Logs
+                    if (method == "Runtime.consoleAPICalled")
                     {
-                        if (root.TryGetProperty("params", out var p)
-                            && p.TryGetProperty("args", out var args)
-                            && args.GetArrayLength() > 0)
+                        var logMsg = root["params"]?["args"]?[0]?["value"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(logMsg))
                         {
-                            string logMsg = args[0].TryGetProperty("value", out var v)
-                                ? v.GetString() ?? "" : "";
-                            if (!string.IsNullOrWhiteSpace(logMsg))
-                                onLog(logMsg);
+                            onLog(logMsg);
                         }
                     }
 
-                    // Handle Script Result (Final)
-                    if (root.TryGetProperty("id", out var id) && id.GetInt32() == 100)
+                    // Handle Final Script Result (ID: 100)
+                    if (id == 100)
                     {
-                        if (root.TryGetProperty("result", out var res)
-                            && res.TryGetProperty("result", out var innerRes)
-                            && innerRes.TryGetProperty("value", out var val))
+                        // Check for successful return value
+                        var scriptOutput = root["result"]?["result"]?["value"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(scriptOutput))
                         {
-                            string output = val.GetString() ?? "";
-                            if (!string.IsNullOrWhiteSpace(output))
-                                onLog(output);
+                            onLog(scriptOutput);
                         }
 
-                        // Report script exceptions
-                        if (root.TryGetProperty("result", out var res2)
-                            && res2.TryGetProperty("exceptionDetails", out var exc))
+                        // Check for script exceptions
+                        var exceptionText = root["result"]
+                            ?["exceptionDetails"]?["text"]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(exceptionText))
                         {
-                            string excText = exc.TryGetProperty("text", out var t)
-                                ? t.GetString() ?? "Unknown error" : "Script exception";
-                            onLog($"ERROR: {excText}");
+                            onLog($"[ERROR] Script Exception: {exceptionText}");
                         }
 
-                        break;
+                        break; // Execution complete, exit loop
                     }
                 }
                 catch (JsonException)
@@ -233,15 +259,37 @@ namespace DiscordQuestRunner.Services
             }
 
             if (ws.State == WebSocketState.Open)
-                await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Done", CancellationToken.None);
+            {
+                await ws.CloseAsync(
+                    WebSocketCloseStatus.NormalClosure,
+                    "Execution Complete",
+                    CancellationToken.None
+                );
+            }
         }
 
-        private static async Task SendCommandAsync(ClientWebSocket ws, int id, string method, object @params, CancellationToken cancellationToken = default)
+        private static async Task SendCommandAsync(
+            ClientWebSocket ws,
+            int id,
+            string method,
+            object @params,
+            CancellationToken cancellationToken = default
+        )
         {
-            var cmd = new { id, method, @params };
+            var cmd = new
+            {
+                id,
+                method,
+                @params,
+            };
             string json = JsonSerializer.Serialize(cmd);
             var bytes = Encoding.UTF8.GetBytes(json);
-            await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, cancellationToken);
+            await ws.SendAsync(
+                new ArraySegment<byte>(bytes),
+                WebSocketMessageType.Text,
+                true,
+                cancellationToken
+            );
         }
     }
 }
