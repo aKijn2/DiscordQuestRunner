@@ -1,9 +1,3 @@
-This is looking excellent. I have integrated the new "Simple Tutorial" section and updated the Roadmap/TODO list with the advanced automation features you mentioned (auto-accepting quests and captcha handling).
-
-I also updated the **Getting Started** section to include the **Binary Release** option, as most users will now prefer to download the `.zip` instead of compiling the source code themselves.
-
------
-
 # Discord Quest Runner [NEXUS]
 
 > An advanced interface for Discord automation. This application provides secure quest reward claiming and precise message cleanup protocols via a dedicated local WebSocket tunnel.
@@ -78,7 +72,7 @@ dotnet run -f net9.0-windows10.0.19041.0
   - [ ] **Persistence:** Add local storage for target IDs to prevent repetitive data entry.
 
   - [ ] **Codebase Refactor:** Clean up and modularize service injections.
-  
+
   - [ ] **Documentation:** Add XML comments to complex bridging and CDP handshake logic.
 
 -----
