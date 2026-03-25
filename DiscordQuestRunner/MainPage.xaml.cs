@@ -15,7 +15,12 @@ namespace DiscordQuestRunner
         }
 
         // --- CUSTOM ALERT LOGIC ---
-        private async Task<bool> ShowNexusAlertAsync(string title, string message, string confirmText, string cancelText = null)
+        private async Task<bool> ShowNexusAlertAsync(
+            string title,
+            string message,
+            string confirmText,
+            string cancelText = null
+        )
         {
             AlertTitleLbl.Text = title.ToUpper();
             AlertMessageLbl.Text = message;
@@ -54,6 +59,7 @@ namespace DiscordQuestRunner
             ModalOverlay.IsVisible = false;
             _alertTcs?.TrySetResult(false);
         }
+
         // --------------------------
 
         private void OnOpenDeleterClicked(object sender, EventArgs e)
@@ -66,12 +72,16 @@ namespace DiscordQuestRunner
                 Width = 550,
                 Height = 650,
                 MinimumWidth = 450,
-                MinimumHeight = 550
+                MinimumHeight = 550,
             };
             Application.Current?.OpenWindow(deleterWindow);
 #else
             // Updated to use custom alert
-            _ = ShowNexusAlertAsync("SYSTEM ERROR", "This feature only works on Windows architecture.", "ACKNOWLEDGE");
+            _ = ShowNexusAlertAsync(
+                "SYSTEM ERROR",
+                "This feature only works on Windows architecture.",
+                "ACKNOWLEDGE"
+            );
 #endif
         }
 
@@ -79,13 +89,18 @@ namespace DiscordQuestRunner
         {
             await Clipboard.SetTextAsync(StatusLbl.Text);
             // Updated to use custom alert
-            await ShowNexusAlertAsync("DATA EXPORTED", "Runtime log copied to system clipboard.", "OK");
+            await ShowNexusAlertAsync(
+                "DATA EXPORTED",
+                "Runtime log copied to system clipboard.",
+                "OK"
+            );
         }
 
         private async void OnRunClicked(object sender, EventArgs e)
         {
 #if WINDOWS
-            if (_isRunning) return;
+            if (_isRunning)
+                return;
             _isRunning = true;
             RunBtn.IsEnabled = false;
             RunBtn.Text = "RUNNING...";
@@ -94,11 +109,12 @@ namespace DiscordQuestRunner
 
             try
             {
-                void Log(string msg) => MainThread.BeginInvokeOnMainThread(async () =>
-                {
-                    StatusLbl.Text += $"\n{msg}";
-                    await LogScroll.ScrollToAsync(StatusLbl, ScrollToPosition.End, true);
-                });
+                void Log(string msg) =>
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        StatusLbl.Text += $"\n{msg}";
+                        await LogScroll.ScrollToAsync(StatusLbl, ScrollToPosition.End, true);
+                    });
 
                 StatusLbl.Text = "Initializing sequence...";
                 Log("Checking Discord process...");
@@ -112,10 +128,11 @@ namespace DiscordQuestRunner
 
                     // Updated to use custom alert
                     bool answer = await ShowNexusAlertAsync(
-                        "RESTART REQUIRED", 
-                        "Discord must be restarted in Debug Mode. Proceed with protocol?", 
-                        "AUTHORIZE", 
-                        "ABORT");
+                        "RESTART REQUIRED",
+                        "Discord must be restarted in Debug Mode. Proceed with protocol?",
+                        "AUTHORIZE",
+                        "ABORT"
+                    );
 
                     if (!answer)
                     {
@@ -150,10 +167,14 @@ namespace DiscordQuestRunner
                 Log("Injecting payload...");
 
                 string script = await DiscordService.LoadScriptAsync("quest_runner.js");
-                await _discordService.ExecuteScriptAsync(connection.wsUrl, script, (msg) =>
-                {
-                    Log("SCRIPT: " + msg);
-                });
+                await _discordService.ExecuteScriptAsync(
+                    connection.wsUrl,
+                    script,
+                    (msg) =>
+                    {
+                        Log("SCRIPT: " + msg);
+                    }
+                );
 
                 Log("Payload delivered successfully.");
                 Log("Monitoring background tasks...");
@@ -173,7 +194,11 @@ namespace DiscordQuestRunner
                 LoadingIndicator.IsRunning = false;
             }
 #else
-            await ShowNexusAlertAsync("SYSTEM ERROR", "This automation only works on Windows architecture.", "ACKNOWLEDGE");
+            await ShowNexusAlertAsync(
+                "SYSTEM ERROR",
+                "This automation only works on Windows architecture.",
+                "ACKNOWLEDGE"
+            );
 #endif
         }
     }

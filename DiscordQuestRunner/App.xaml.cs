@@ -15,13 +15,17 @@
             var mainPage = _serviceProvider.GetRequiredService<MainPage>();
             var window = new Window(mainPage)
             {
-                Title = "Discord Quest Runner", // Adds a clean title to the window
+                Title = "Discord Quest Runner",
+
+                // Pin all dimensions to the exact same size
                 Width = 500,
                 Height = 700,
-                MinimumWidth = 450, // Slightly wider minimum so our UI never squishes
-                MinimumHeight = 600
+                MinimumWidth = 500,
+                MaximumWidth = 500,
+                MinimumHeight = 700,
+                MaximumHeight = 700,
             };
-            
+
             return window;
         }
     }
