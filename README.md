@@ -41,7 +41,7 @@ Built on **.NET MAUI 9.0**, this application interfaces directly with the offici
 
 ### Option 1: Binary Release (Recommended)
 
-1.  Download the latest `DiscordQuestRunner-Win64.zip` from the [Releases](https://www.google.com/search?q=https://github.com/yourusername/DiscordQuestRunner/releases) section.
+1.  Download the latest `DiscordQuestRunner-Win64.zip` from the [Releases](https://github.com/aKijn2/DiscordQuestRunner/releases/tag/v1.0.0) section.
 2.  Extract the folder and run `DiscordQuestRunner.exe`.
 
 ### Option 2: Build from Source
