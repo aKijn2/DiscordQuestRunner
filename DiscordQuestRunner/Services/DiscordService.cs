@@ -227,6 +227,25 @@ namespace DiscordQuestRunner.Services
                         var logMsg = root["params"]?["args"]?[0]?["value"]?.ToString();
                         if (!string.IsNullOrWhiteSpace(logMsg))
                         {
+                            // --- SMART NOISE FILTER ---
+                            // Ignore internal Discord telemetry and React logs
+                            if (
+                                logMsg.Contains("%c[")
+                                || logMsg.Contains("[FAST CONNECT]")
+                                || logMsg.Contains("audio subsystem")
+                                || logMsg.Contains("service release channel")
+                                || logMsg.Contains("libdiscore")
+                            )
+                            {
+                                continue; // Skip this spammy line entirely
+                            }
+
+                            // Clean up empty lines or weird whitespace from the script
+                            logMsg = logMsg.Trim();
+                            if (string.IsNullOrWhiteSpace(logMsg))
+                                continue;
+
+                            // Pass the clean log to the UI
                             onLog(logMsg);
                         }
                     }
