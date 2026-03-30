@@ -1,4 +1,4 @@
-// Quest Runner & Claimer Script (V3)
+﻿// Quest Runner & Claimer Script (V3)
 (async function() {
     const stateKey = "__DQR_QUEST_RUNNER_STATE__";
     const autoAcceptStateKey = "__DQR_AUTO_ACCEPT_STATE__";
@@ -25,8 +25,12 @@
     window[stateKey] = state;
 
     let internalLog = "";
-    const console = { log: (msg, ...args) => { internalLog += msg + " " + args.join(" ") + "\n"; } };
-    const log = console.log;
+    const originalConsole = window.console;
+    const log = (msg, ...args) => { 
+        internalLog += msg + " " + args.join(" ") + "\n"; 
+        originalConsole.log("[DQR SCRIPT]", msg, ...args);
+    };
+    const console = { log };
     const isCancelled = () => state.cancelled || window[stateKey]?.runId !== runId;
     const cancelReason = () => state.reason || "superseded";
     const getQuestName = (quest) => quest?.config?.messages?.questName || quest?.config?.application?.name || quest?.id || "Unknown Quest";
@@ -117,7 +121,7 @@
                                             // and horizontally centered within the initial small iframe.
                                             const cx = Math.round(rect.left + 35);
                                             const cy = Math.round(rect.top + (rect.height / 2));
-                                            console.log(`[DQR] CLICK_CAPTCHA:${cx},${cy}`);
+                                            originalConsole.log(`[DQR] CLICK_CAPTCHA:${cx},${cy}`);
                                             autoClickAttempted = true;
                                             break;
                                         }
