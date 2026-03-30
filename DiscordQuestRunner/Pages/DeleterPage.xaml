@@ -27,7 +27,7 @@
                     <Label
                         CharacterSpacing="4"
                         FontAttributes="Bold"
-                        FontSize="10"
+                        FontSize="11"
                         Text="NEXUS :: PURGE"
                         TextColor="#FF5F56"
                         VerticalOptions="Center" />
@@ -62,7 +62,7 @@
                         x:Name="StatusBadgeLbl"
                         CharacterSpacing="1"
                         FontAttributes="Bold"
-                        FontSize="10"
+                        FontSize="11"
                         Text="STANDBY"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
                         VerticalOptions="Center" />
@@ -92,12 +92,12 @@
                         <Label
                             CharacterSpacing="1"
                             FontAttributes="Bold"
-                            FontSize="10"
+                            FontSize="11"
                             Text="CHANNEL_ID"
                             TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
                             VerticalOptions="Center" />
                         <Label
-                            FontSize="10"
+                            FontSize="11"
                             Text="*"
                             TextColor="#FF5F56"
                             VerticalOptions="Center" />
@@ -129,12 +129,12 @@
                         <Label
                             CharacterSpacing="1"
                             FontAttributes="Bold"
-                            FontSize="10"
+                            FontSize="11"
                             Text="USER_ID"
                             TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
                             VerticalOptions="Center" />
                         <Label
-                            FontSize="10"
+                            FontSize="11"
                             Text="*"
                             TextColor="#FF5F56"
                             VerticalOptions="Center" />
@@ -191,7 +191,7 @@
                         TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
                     <Label
                         CharacterSpacing="1"
-                        FontSize="10"
+                        FontSize="11"
                         HorizontalOptions="Center"
                         Text="FOUND"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
@@ -221,7 +221,7 @@
                         TextColor="#FF5F56" />
                     <Label
                         CharacterSpacing="1"
-                        FontSize="10"
+                        FontSize="11"
                         HorizontalOptions="Center"
                         Text="DELETED"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
@@ -251,7 +251,7 @@
                         TextColor="{StaticResource Primary}" />
                     <Label
                         CharacterSpacing="1"
-                        FontSize="10"
+                        FontSize="11"
                         HorizontalOptions="Center"
                         Text="PROGRESS"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
@@ -291,7 +291,7 @@
                         Grid.Column="1"
                         CharacterSpacing="1"
                         FontAttributes="Bold"
-                        FontSize="10"
+                        FontSize="11"
                         Margin="12,0,0,0"
                         Text="SYSTEM LOG"
                         TextColor="{StaticResource Gray400}"
@@ -306,7 +306,7 @@
                         Clicked="OnCopyLogClicked"
                         CornerRadius="3"
                         FontAttributes="Bold"
-                        FontSize="10"
+                        FontSize="11"
                         CharacterSpacing="1"
                         HeightRequest="26"
                         Text="SAVE"
