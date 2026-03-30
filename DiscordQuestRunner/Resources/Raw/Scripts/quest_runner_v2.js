@@ -336,4 +336,4 @@
             delete window[stateKey];
         }
     }
-})();                     
+})();                       
