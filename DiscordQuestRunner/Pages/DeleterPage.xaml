@@ -445,7 +445,7 @@
                             VerticalOptions="Center" />
                     </HorizontalStackLayout>
 
-                    <BoxView BackgroundColor="{StaticResource BorderDark}" HeightRequest="1" />
+                    <BoxView BackgroundColor="{StaticResource BorderDark}" HeightRequest="2" />
 
                     <Label
                         x:Name="AlertMessageLbl"
