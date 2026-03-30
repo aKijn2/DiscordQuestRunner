@@ -43,7 +43,7 @@
             <!-- Status badge -->
             <Border
                 Grid.Column="2"
-                Padding="10,6"
+                Padding="12,6"
                 BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                 StrokeThickness="1"
