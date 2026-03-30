@@ -21,8 +21,8 @@
                     <BoxView
                         BackgroundColor="#FF5F56"
                         CornerRadius="2"
-                        HeightRequest="18"
-                        WidthRequest="3"
+                        HeightRequest="20"
+                        WidthRequest="4"
                         VerticalOptions="Center" />
                     <Label
                         CharacterSpacing="4"
