@@ -171,24 +171,27 @@
             <!-- Found -->
             <Border
                 Grid.Column="0"
-                Padding="12,10"
+                Padding="12,12"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                 StrokeThickness="1">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="4" />
+                    <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Opacity="0.15" Offset="0,3" Radius="6" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                     <Label
                         x:Name="FoundCountLbl"
                         FontAttributes="Bold"
-                        FontSize="20"
+                        FontSize="22"
                         HorizontalOptions="Center"
                         Text="—"
                         TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
                     <Label
                         CharacterSpacing="1"
-                        FontSize="9"
+                        FontSize="10"
                         HorizontalOptions="Center"
                         Text="FOUND"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
@@ -198,24 +201,27 @@
             <!-- Deleted -->
             <Border
                 Grid.Column="1"
-                Padding="12,10"
+                Padding="12,12"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 Stroke="#FF5F56"
-                StrokeThickness="1">
+                StrokeThickness="1.5">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="4" />
+                    <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                <Border.Shadow>
+                    <Shadow Brush="#FF5F56" Opacity="0.2" Offset="0,3" Radius="8" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                     <Label
                         x:Name="DeletedCountLbl"
                         FontAttributes="Bold"
-                        FontSize="20"
+                        FontSize="22"
                         HorizontalOptions="Center"
                         Text="—"
                         TextColor="#FF5F56" />
                     <Label
                         CharacterSpacing="1"
-                        FontSize="9"
+                        FontSize="10"
                         HorizontalOptions="Center"
                         Text="DELETED"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
@@ -225,24 +231,27 @@
             <!-- Progress -->
             <Border
                 Grid.Column="2"
-                Padding="12,10"
+                Padding="12,12"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                 StrokeThickness="1">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="4" />
+                    <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
-                <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Opacity="0.15" Offset="0,3" Radius="6" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                     <Label
                         x:Name="ProgressPctLbl"
                         FontAttributes="Bold"
-                        FontSize="20"
+                        FontSize="22"
                         HorizontalOptions="Center"
                         Text="—"
                         TextColor="{StaticResource Primary}" />
                     <Label
                         CharacterSpacing="1"
-                        FontSize="9"
+                        FontSize="10"
                         HorizontalOptions="Center"
                         Text="PROGRESS"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
