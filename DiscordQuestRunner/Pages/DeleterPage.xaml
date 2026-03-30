@@ -293,7 +293,7 @@
                         FontAttributes="Bold"
                         FontSize="10"
                         Margin="12,0,0,0"
-                        Text="PURGE LOG"
+                        Text="SYSTEM LOG"
                         TextColor="{StaticResource Gray400}"
                         VerticalOptions="Center" />
 
