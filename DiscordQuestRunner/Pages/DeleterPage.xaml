@@ -282,7 +282,7 @@
                         Grid.Column="0"
                         Spacing="6"
                         VerticalOptions="Center">
-                        <Ellipse Fill="#FF5F56" HeightRequest="9" WidthRequest="9" />
+                        <Ellipse Fill="#FF5F56" HeightRequest="10" WidthRequest="10" />
                         <Ellipse Fill="#FFBD2E" HeightRequest="9" WidthRequest="9" />
                         <Ellipse Fill="#27C93F" HeightRequest="9" WidthRequest="9" />
                     </HorizontalStackLayout>
