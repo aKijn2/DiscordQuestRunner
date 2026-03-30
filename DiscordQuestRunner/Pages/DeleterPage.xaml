@@ -179,7 +179,7 @@
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
                 <Border.Shadow>
-                    <Shadow Brush="Black" Opacity="0.15" Offset="0,3" Radius="6" />
+                    <Shadow Brush="Black" Opacity="0.18" Offset="0,3" Radius="6" />
                 </Border.Shadow>
                 <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                     <Label
@@ -239,7 +239,7 @@
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
                 <Border.Shadow>
-                    <Shadow Brush="Black" Opacity="0.15" Offset="0,3" Radius="6" />
+                    <Shadow Brush="Black" Opacity="0.18" Offset="0,3" Radius="6" />
                 </Border.Shadow>
                 <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                     <Label
