@@ -73,7 +73,7 @@
         <!-- ═══ INPUT PANEL ══════════════════════════════════════════════════ -->
         <Border
             Grid.Row="1"
-            Padding="22"
+            Padding="24"
             BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
             Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
             StrokeThickness="1">
@@ -414,7 +414,7 @@
             Opacity="0"
             ZIndex="999">
             <Border
-                Padding="22"
+                Padding="24"
                 BackgroundColor="{StaticResource MidnightBlue}"
                 HorizontalOptions="Center"
                 Stroke="#FF5F56"
