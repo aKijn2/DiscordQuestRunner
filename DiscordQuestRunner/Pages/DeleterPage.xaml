@@ -55,9 +55,9 @@
                     <Ellipse
                         x:Name="StatusDot"
                         Fill="#FFBD2E"
-                        HeightRequest="7"
+                        HeightRequest="8"
                         VerticalOptions="Center"
-                        WidthRequest="7" />
+                        WidthRequest="8" />
                     <Label
                         x:Name="StatusBadgeLbl"
                         CharacterSpacing="1"
