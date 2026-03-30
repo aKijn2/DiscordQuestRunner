@@ -62,7 +62,7 @@
                         VerticalOptions="Center" />
                     <Label
                         x:Name="StatusBadgeLbl"
-                        CharacterSpacing="1"
+                        CharacterSpacing="2"
                         FontAttributes="Bold"
                         FontSize="10"
                         Text="ONLINE"
@@ -107,7 +107,7 @@
 
                         <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
                             <Label
-                                CharacterSpacing="1"
+                                CharacterSpacing="2"
                                 FontAttributes="Bold"
                                 FontSize="12"
                                 Text="AUTO-ACCEPT QUESTS"
@@ -139,7 +139,7 @@
                         CornerRadius="5"
                         FontAttributes="Bold"
                         FontSize="13"
-                        CharacterSpacing="1"
+                        CharacterSpacing="2"
                         HeightRequest="46"
                         Text="INITIALIZE QUESTS"
                         BackgroundColor="{StaticResource Primary}"
@@ -175,7 +175,7 @@
                     BorderWidth="1"
                     Clicked="OnOpenDeleterClicked"
                     CornerRadius="5"
-                    CharacterSpacing="1"
+                    CharacterSpacing="2"
                     FontAttributes="Bold"
                     FontSize="11"
                     HeightRequest="38"
@@ -215,7 +215,7 @@
 
                     <Label
                         Grid.Column="1"
-                        CharacterSpacing="1"
+                        CharacterSpacing="2"
                         FontAttributes="Bold"
                         FontSize="10"
                         Text="RUNTIME LOG"
@@ -252,7 +252,7 @@
                         CornerRadius="4"
                         FontAttributes="Bold"
                         FontSize="10"
-                        CharacterSpacing="1"
+                        CharacterSpacing="2"
                         HeightRequest="26"
                         Text="COPY"
                         TextColor="{StaticResource Primary}" />
@@ -316,7 +316,7 @@
                             VerticalOptions="Center" />
                         <Label
                             x:Name="AlertTitleLbl"
-                            CharacterSpacing="1"
+                            CharacterSpacing="2"
                             FontAttributes="Bold"
                             FontSize="13"
                             Text="SYSTEM ALERT"
