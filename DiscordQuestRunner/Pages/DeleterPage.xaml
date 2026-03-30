@@ -185,7 +185,7 @@
                     <Label
                         x:Name="FoundCountLbl"
                         FontAttributes="Bold"
-                        FontSize="22"
+                        FontSize="24"
                         HorizontalOptions="Center"
                         Text="—"
                         TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
@@ -215,7 +215,7 @@
                     <Label
                         x:Name="DeletedCountLbl"
                         FontAttributes="Bold"
-                        FontSize="22"
+                        FontSize="24"
                         HorizontalOptions="Center"
                         Text="—"
                         TextColor="#FF5F56" />
@@ -245,7 +245,7 @@
                     <Label
                         x:Name="ProgressPctLbl"
                         FontAttributes="Bold"
-                        FontSize="22"
+                        FontSize="24"
                         HorizontalOptions="Center"
                         Text="—"
                         TextColor="{StaticResource Primary}" />
