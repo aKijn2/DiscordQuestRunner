@@ -278,27 +278,6 @@ namespace DiscordQuestRunner.Pages
 #endif
         }
 
-        // Add this method anywhere inside your DeleterPage class
-        private async void OnBackClicked(object sender, EventArgs e)
-        {
-            // If a purge is currently running, maybe ask for confirmation first!
-            if (_isAborting || !DeleteBtn.IsEnabled)
-            {
-                bool leave = await ShowNexusAlertAsync(
-                    "WARNING",
-                    "A process is currently active. Are you sure you want to leave?",
-                    "LEAVE",
-                    "STAY"
-                );
-
-                if (!leave)
-                    return;
-            }
-
-            // Slide back to the main quest runner page
-            await Navigation.PopAsync();
-        }
-
         // Helper method to clean up repetitive state resets
         private void ResetUI()
         {

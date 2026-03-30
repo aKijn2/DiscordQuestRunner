@@ -1,351 +1,314 @@
 <ContentPage
-  NavigationPage.HasNavigationBar="False"
-  x:Class="DiscordQuestRunner.Pages.DeleterPage"
-  xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-  Title="Deleter Protocol"
-  BackgroundColor="{AppThemeBinding Light={StaticResource PageBgLight}, Dark={StaticResource PageBgDark}}"
->
-  <Grid Padding="25" RowDefinitions="Auto, Auto, *, Auto" RowSpacing="25">
-    <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" VerticalOptions="Center">
-      <Button
-        Grid.Column="0"
-        Text="◄"
-        Clicked="OnBackClicked"
-        BackgroundColor="Transparent"
-        TextColor="{StaticResource Gray300}"
-        FontSize="16"
-        FontAttributes="Bold"
-        Margin="0,0,15,0"
-        WidthRequest="40"
-        HeightRequest="40"
-        CornerRadius="20"
-        BorderWidth="1"
-        BorderColor="{StaticResource BorderDark}"
-      />
-
-      <VerticalStackLayout Grid.Column="1" Spacing="-2">
-        <Label
-          Text="NEXUS"
-          FontSize="14"
-          FontAttributes="Bold"
-          TextColor="{StaticResource PrimaryDark}"
-          CharacterSpacing="4"
-        />
-        <Label
-          Text="Message Purge"
-          FontSize="26"
-          FontAttributes="Bold"
-          TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
-        />
-      </VerticalStackLayout>
-
-      <Border
-        Grid.Column="2"
-        BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
-        Padding="12,8"
-        VerticalOptions="Center"
-        StrokeThickness="1"
-        Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
-      >
-        <Border.StrokeShape>
-          <RoundRectangle CornerRadius="20" />
-        </Border.StrokeShape>
-        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
-          <Ellipse Fill="#FFBD2E" WidthRequest="8" HeightRequest="8" VerticalOptions="Center" />
-          <Label
-            Text="AWAITING PARAMS"
-            FontSize="10"
-            FontAttributes="Bold"
-            TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
-            VerticalOptions="Center"
-          />
-        </HorizontalStackLayout>
-      </Border>
-    </Grid>
-
-    <Border
-      Grid.Row="1"
-      BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
-      StrokeThickness="1"
-      Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
-      Padding="20"
-    >
-      <Border.StrokeShape>
-        <RoundRectangle CornerRadius="20" />
-      </Border.StrokeShape>
-      <Border.Shadow>
-        <Shadow Brush="Black" Offset="0,6" Radius="15" Opacity="0.1" />
-      </Border.Shadow>
-
-      <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
-        <VerticalStackLayout Grid.Column="0" Spacing="6">
-          <Label
-            Text="CHANNEL_ID"
-            FontSize="10"
-            FontAttributes="Bold"
-            TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
-          />
-          <Border
-            BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
-            StrokeThickness="1"
-            Stroke="{StaticResource PrimaryDark}"
-            Padding="10,0"
-          >
-            <Border.StrokeShape>
-              <RoundRectangle CornerRadius="8" />
-            </Border.StrokeShape>
-            <Entry
-              x:Name="ChannelIdEntry"
-              FontSize="13"
-              Keyboard="Numeric"
-              Placeholder="Target Channel"
-              TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
-              PlaceholderColor="{AppThemeBinding Light={StaticResource PlaceholderLight}, Dark={StaticResource PlaceholderDark}}"
-              HeightRequest="44"
-              BackgroundColor="Transparent"
-            />
-          </Border>
-        </VerticalStackLayout>
-
-        <VerticalStackLayout Grid.Column="1" Spacing="6">
-          <Label
-            Text="USER_ID"
-            FontSize="10"
-            FontAttributes="Bold"
-            TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
-          />
-          <Border
-            BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
-            StrokeThickness="1"
-            Stroke="{StaticResource PrimaryDark}"
-            Padding="10,0"
-          >
-            <Border.StrokeShape>
-              <RoundRectangle CornerRadius="8" />
-            </Border.StrokeShape>
-            <Entry
-              x:Name="UserIdEntry"
-              FontSize="13"
-              Keyboard="Numeric"
-              Placeholder="Target User"
-              TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
-              PlaceholderColor="{AppThemeBinding Light={StaticResource PlaceholderLight}, Dark={StaticResource PlaceholderDark}}"
-              HeightRequest="44"
-              BackgroundColor="Transparent"
-            />
-          </Border>
-        </VerticalStackLayout>
-      </Grid>
-    </Border>
-
-    <Border
-      Grid.Row="2"
-      BackgroundColor="{StaticResource MidnightBlue}"
-      StrokeThickness="1"
-      Stroke="{StaticResource Primary}"
-    >
-      <Border.StrokeShape>
-        <RoundRectangle CornerRadius="16" />
-      </Border.StrokeShape>
-
-      <Grid RowDefinitions="Auto, *">
-        <Grid
-          Grid.Row="0"
-          BackgroundColor="#000000"
-          Opacity="0.4"
-          Padding="15,12"
-          ColumnDefinitions="Auto, *, Auto"
-        >
-          <HorizontalStackLayout Grid.Column="0" Spacing="6" VerticalOptions="Center">
-            <Ellipse Fill="#FF5F56" WidthRequest="10" HeightRequest="10" />
-            <Ellipse Fill="#FFBD2E" WidthRequest="10" HeightRequest="10" />
-            <Ellipse Fill="#27C93F" WidthRequest="10" HeightRequest="10" />
-          </HorizontalStackLayout>
-
-          <Label
-            Grid.Column="1"
-            Text="PURGE LOG"
-            FontSize="11"
-            FontAttributes="Bold"
-            CharacterSpacing="1"
-            TextColor="{StaticResource Gray300}"
-            VerticalOptions="Center"
-            Margin="15,0,0,0"
-          />
-
-          <Button
-            Grid.Column="2"
-            Text="SAVE LOG"
-            Clicked="OnCopyLogClicked"
-            FontSize="10"
-            FontAttributes="Bold"
-            Padding="12,0"
-            HeightRequest="28"
-            CornerRadius="6"
-            BackgroundColor="{StaticResource Primary}"
-            TextColor="White"
-          />
-        </Grid>
-
-        <ScrollView x:Name="LogScroll" Grid.Row="1" Padding="15">
-          <Label
-            x:Name="StatusLbl"
-            Text="> AWAITING DEPLOYMENT PARAMETERS..."
-            FontFamily="Consolas"
-            FontSize="12"
-            TextColor="{StaticResource Secondary}"
-            LineHeight="1.5"
-          />
-        </ScrollView>
-      </Grid>
-    </Border>
-
-    <Grid Grid.Row="3" ColumnDefinitions="Auto, *, Auto" ColumnSpacing="15">
-      <Border
-        Grid.Column="0"
-        BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
-        StrokeThickness="1"
-        Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
-        WidthRequest="56"
-        HeightRequest="56"
-      >
-        <Border.StrokeShape>
-          <RoundRectangle CornerRadius="14" />
-        </Border.StrokeShape>
-        <ActivityIndicator
-          x:Name="LoadingIndicator"
-          IsRunning="False"
-          IsVisible="False"
-          Color="{StaticResource Magenta}"
-          VerticalOptions="Center"
-          HorizontalOptions="Center"
-        />
-      </Border>
-
-      <Button
-        x:Name="DeleteBtn"
-        Grid.Column="1"
-        Clicked="OnDeleteClicked"
-        Text="START PURGE"
-        FontSize="15"
-        FontAttributes="Bold"
-        CharacterSpacing="1.5"
-        HeightRequest="56"
-        CornerRadius="14"
-        TextColor="White"
-      >
-        <Button.Background>
-          <LinearGradientBrush EndPoint="1,0">
-            <GradientStop Color="{StaticResource Primary}" Offset="0.0" />
-            <GradientStop Color="{StaticResource Magenta}" Offset="1.0" />
-          </LinearGradientBrush>
-        </Button.Background>
-        <Button.Shadow>
-          <Shadow Brush="{StaticResource Magenta}" Offset="0,4" Radius="12" Opacity="0.25" />
-        </Button.Shadow>
-      </Button>
-
-      <Button
-        x:Name="AbortBtn"
-        Grid.Column="2"
-        Clicked="OnAbortClicked"
-        Text="ABORT"
-        FontSize="13"
-        FontAttributes="Bold"
-        IsEnabled="False"
-        HeightRequest="56"
-        WidthRequest="100"
-        CornerRadius="14"
-        BackgroundColor="Transparent"
-        BorderWidth="1.5"
-        BorderColor="{StaticResource Magenta}"
-        TextColor="{StaticResource Magenta}"
-      />
-    </Grid>
+    x:Class="DiscordQuestRunner.Pages.DeleterPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Deleter Protocol"
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBgLight}, Dark={StaticResource PageBgDark}}"
+    NavigationPage.HasNavigationBar="False">
 
     <Grid
-      x:Name="ModalOverlay"
-      Grid.Row="0"
-      Grid.RowSpan="4"
-      BackgroundColor="#CC000000"
-      IsVisible="False"
-      ZIndex="999"
-      Opacity="0"
-    >
-      <Border
-        VerticalOptions="Center"
-        HorizontalOptions="Center"
-        WidthRequest="350"
-        BackgroundColor="{StaticResource MidnightBlue}"
-        StrokeThickness="1"
-        Stroke="{StaticResource Primary}"
-        Padding="25"
-      >
-        <Border.StrokeShape>
-          <RoundRectangle CornerRadius="16" />
-        </Border.StrokeShape>
-        <Border.Shadow>
-          <Shadow Brush="{StaticResource Primary}" Offset="0,0" Radius="30" Opacity="0.4" />
-        </Border.Shadow>
+        Padding="20"
+        RowDefinitions="Auto, Auto, *, Auto"
+        RowSpacing="20">
 
-        <VerticalStackLayout Spacing="15">
-          <HorizontalStackLayout Spacing="10">
-            <Ellipse
-              Fill="{StaticResource Magenta}"
-              WidthRequest="10"
-              HeightRequest="10"
-              VerticalOptions="Center"
-            />
-            <Label
-              x:Name="AlertTitleLbl"
-              Text="SYSTEM ALERT"
-              FontSize="16"
-              FontAttributes="Bold"
-              CharacterSpacing="1"
-              TextColor="White"
-            />
-          </HorizontalStackLayout>
+        <Grid
+            Grid.Row="0"
+            ColumnDefinitions="Auto, *, Auto"
+            VerticalOptions="Center">
 
-          <Label
-            x:Name="AlertMessageLbl"
-            Text="..."
-            FontSize="13"
-            TextColor="{StaticResource Gray200}"
-            LineHeight="1.4"
-          />
+            <VerticalStackLayout Grid.Column="1" Spacing="0">
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="12"
+                    Text="NEXUS"
+                    TextColor="{StaticResource PrimaryDark}" />
+                <Label
+                    FontAttributes="Bold"
+                    FontSize="22"
+                    Text="Message Purge"
+                    TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+            </VerticalStackLayout>
 
-          <Grid ColumnDefinitions="*, *" ColumnSpacing="10" Margin="0,10,0,0">
+            <Border
+                Grid.Column="2"
+                Padding="10,5"
+                BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
+                Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
+                StrokeThickness="1"
+                VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="4" />
+                </Border.StrokeShape>
+                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                    <Ellipse
+                        Fill="#FFBD2E"
+                        HeightRequest="8"
+                        VerticalOptions="Center"
+                        WidthRequest="8" />
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="11"
+                        Text="AWAITING PARAMS"
+                        TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+        </Grid>
+
+        <Border
+            Grid.Row="1"
+            Padding="20"
+            BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
+            Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
+            StrokeThickness="1">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="4" />
+            </Border.StrokeShape>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                <VerticalStackLayout Grid.Column="0" Spacing="5">
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="11"
+                        Text="CHANNEL_ID"
+                        TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+                    <Border
+                        Padding="10,0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
+                        Stroke="{StaticResource PrimaryDark}"
+                        StrokeThickness="1">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="4" />
+                        </Border.StrokeShape>
+                        <Entry
+                            x:Name="ChannelIdEntry"
+                            BackgroundColor="Transparent"
+                            FontSize="13"
+                            HeightRequest="36"
+                            Keyboard="Numeric"
+                            Placeholder="Target Channel"
+                            PlaceholderColor="{AppThemeBinding Light={StaticResource PlaceholderLight}, Dark={StaticResource PlaceholderDark}}"
+                            TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Column="1" Spacing="5">
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="11"
+                        Text="USER_ID"
+                        TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+                    <Border
+                        Padding="10,0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
+                        Stroke="{StaticResource PrimaryDark}"
+                        StrokeThickness="1">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="4" />
+                        </Border.StrokeShape>
+                        <Entry
+                            x:Name="UserIdEntry"
+                            BackgroundColor="Transparent"
+                            FontSize="13"
+                            HeightRequest="36"
+                            Keyboard="Numeric"
+                            Placeholder="Target User"
+                            PlaceholderColor="{AppThemeBinding Light={StaticResource PlaceholderLight}, Dark={StaticResource PlaceholderDark}}"
+                            TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    </Border>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <Border
+            Grid.Row="2"
+            BackgroundColor="{StaticResource MidnightBlue}"
+            Stroke="{StaticResource Primary}"
+            StrokeThickness="1">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="4" />
+            </Border.StrokeShape>
+
+            <Grid RowDefinitions="Auto, *">
+                <Grid
+                    Grid.Row="0"
+                    Padding="10,8"
+                    BackgroundColor="#1A1A1A"
+                    ColumnDefinitions="Auto, *, Auto">
+                    <HorizontalStackLayout
+                        Grid.Column="0"
+                        Spacing="6"
+                        VerticalOptions="Center">
+                        <Ellipse Fill="#FF5F56" HeightRequest="10" WidthRequest="10" />
+                        <Ellipse Fill="#FFBD2E" HeightRequest="10" WidthRequest="10" />
+                        <Ellipse Fill="#27C93F" HeightRequest="10" WidthRequest="10" />
+                    </HorizontalStackLayout>
+
+                    <Label
+                        Grid.Column="1"
+                        Margin="15,0,0,0"
+                        FontAttributes="Bold"
+                        FontSize="11"
+                        Text="Purge Log"
+                        TextColor="{StaticResource Gray300}"
+                        VerticalOptions="Center" />
+
+                    <Button
+                        Grid.Column="2"
+                        Padding="15,0"
+                        BackgroundColor="{StaticResource Primary}"
+                        Clicked="OnCopyLogClicked"
+                        CornerRadius="4"
+                        FontAttributes="Bold"
+                        FontSize="11"
+                        HeightRequest="26"
+                        Text="Save Log"
+                        TextColor="White" />
+                </Grid>
+
+                <ScrollView
+                    x:Name="LogScroll"
+                    Grid.Row="1"
+                    Padding="15">
+                    <Label
+                        x:Name="StatusLbl"
+                        FontFamily="Consolas"
+                        FontSize="12"
+                        LineHeight="1.5"
+                        Text="> AWAITING DEPLOYMENT PARAMETERS..."
+                        TextColor="{StaticResource Secondary}" />
+                </ScrollView>
+            </Grid>
+        </Border>
+
+        <Grid
+            Grid.Row="3"
+            ColumnDefinitions="Auto, *, Auto"
+            ColumnSpacing="15">
+            <Border
+                Grid.Column="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
+                HeightRequest="45"
+                Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
+                StrokeThickness="1"
+                WidthRequest="45">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="4" />
+                </Border.StrokeShape>
+                <ActivityIndicator
+                    x:Name="LoadingIndicator"
+                    HeightRequest="20"
+                    HorizontalOptions="Center"
+                    IsRunning="False"
+                    IsVisible="False"
+                    VerticalOptions="Center"
+                    WidthRequest="20"
+                    Color="{StaticResource Primary}" />
+            </Border>
+
             <Button
-              x:Name="AlertCancelBtn"
-              Grid.Column="0"
-              Text="CANCEL"
-              Clicked="OnAlertCancelClicked"
-              BackgroundColor="Transparent"
-              BorderWidth="1"
-              BorderColor="{StaticResource Gray600}"
-              TextColor="{StaticResource Gray200}"
-              FontSize="12"
-              FontAttributes="Bold"
-              HeightRequest="40"
-              CornerRadius="8"
-            />
+                x:Name="DeleteBtn"
+                Grid.Column="1"
+                BackgroundColor="{StaticResource Primary}"
+                Clicked="OnDeleteClicked"
+                CornerRadius="4"
+                FontAttributes="Bold"
+                FontSize="14"
+                HeightRequest="45"
+                Text="START PURGE"
+                TextColor="White" />
 
             <Button
-              x:Name="AlertConfirmBtn"
-              Grid.Column="1"
-              Text="CONFIRM"
-              Clicked="OnAlertConfirmClicked"
-              BackgroundColor="{StaticResource Primary}"
-              TextColor="White"
-              FontSize="12"
-              FontAttributes="Bold"
-              HeightRequest="40"
-              CornerRadius="8"
-            />
-          </Grid>
-        </VerticalStackLayout>
-      </Border>
+                x:Name="AbortBtn"
+                Grid.Column="2"
+                BackgroundColor="Transparent"
+                BorderColor="{StaticResource Magenta}"
+                BorderWidth="1"
+                Clicked="OnAbortClicked"
+                CornerRadius="4"
+                FontAttributes="Bold"
+                FontSize="12"
+                HeightRequest="45"
+                IsEnabled="False"
+                Text="ABORT"
+                TextColor="{StaticResource Magenta}"
+                WidthRequest="80" />
+        </Grid>
+
+        <Grid
+            x:Name="ModalOverlay"
+            Grid.Row="0"
+            Grid.RowSpan="4"
+            BackgroundColor="#B3000000"
+            IsVisible="False"
+            Opacity="0"
+            ZIndex="999">
+            <Border
+                Padding="20"
+                BackgroundColor="{StaticResource MidnightBlue}"
+                HorizontalOptions="Center"
+                Stroke="{StaticResource Primary}"
+                StrokeThickness="1"
+                VerticalOptions="Center"
+                WidthRequest="350">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="4" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="15">
+                    <HorizontalStackLayout Spacing="8">
+                        <Ellipse
+                            Fill="{StaticResource Primary}"
+                            HeightRequest="10"
+                            VerticalOptions="Center"
+                            WidthRequest="10" />
+                        <Label
+                            x:Name="AlertTitleLbl"
+                            FontAttributes="Bold"
+                            FontSize="15"
+                            Text="SYSTEM ALERT"
+                            TextColor="White" />
+                    </HorizontalStackLayout>
+
+                    <Label
+                        x:Name="AlertMessageLbl"
+                        FontSize="13"
+                        LineHeight="1.4"
+                        Text="..."
+                        TextColor="{StaticResource Gray200}" />
+
+                    <Grid
+                        Margin="0,10,0,0"
+                        ColumnDefinitions="*, *"
+                        ColumnSpacing="10">
+                        <Button
+                            x:Name="AlertCancelBtn"
+                            Grid.Column="0"
+                            BackgroundColor="Transparent"
+                            BorderColor="{StaticResource Gray600}"
+                            BorderWidth="1"
+                            Clicked="OnAlertCancelClicked"
+                            CornerRadius="4"
+                            FontAttributes="Bold"
+                            FontSize="12"
+                            HeightRequest="36"
+                            Text="Cancel"
+                            TextColor="{StaticResource Gray200}" />
+
+                        <Button
+                            x:Name="AlertConfirmBtn"
+                            Grid.Column="1"
+                            BackgroundColor="{StaticResource Primary}"
+                            Clicked="OnAlertConfirmClicked"
+                            CornerRadius="4"
+                            FontAttributes="Bold"
+                            FontSize="12"
+                            HeightRequest="36"
+                            Text="OK"
+                            TextColor="White" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
     </Grid>
-  </Grid>
 </ContentPage>
