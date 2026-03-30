@@ -34,7 +34,7 @@
                 </HorizontalStackLayout>
                 <Label
                     FontAttributes="Bold"
-                    FontSize="24"
+                    FontSize="26"
                     Margin="12,0,0,0"
                     Text="MESSAGE PURGE"
                     TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
