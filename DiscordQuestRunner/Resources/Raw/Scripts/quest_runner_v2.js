@@ -86,7 +86,32 @@
                 log(`REWARD CLAIMED: ${questName}`);
             } catch(e) {
                 if(e.body && (e.body.code === 50035 || e.body.captcha_key)) {
-                    log(`CAPTCHA REQUIRED for ${questName}. (Manual action needed)`);
+                    log(`CAPTCHA REQUIRED for ${questName}. Triggering UI popup...`);
+                    
+                    let NativeActions = Object.values(wpRequire.c).find(x => x?.exports?.Z?.claimQuestReward)?.exports?.Z 
+                                     || Object.values(wpRequire.c).find(x => x?.exports?.Z?.claimReward)?.exports?.Z;
+                    
+                    if (NativeActions && typeof NativeActions.claimQuestReward === 'function') {
+                         try { NativeActions.claimQuestReward(quest.id); } catch(err) { log("Native action trap failed."); }
+                    } else if (NativeActions && typeof NativeActions.claimReward === 'function') {
+                         try { NativeActions.claimReward(quest.id); } catch(err) { log("Native action trap failed."); }
+                    } else {
+                         const b = Array.from(document.querySelectorAll('button')).find(btn => btn.innerText && btn.innerText.length > 2 && (btn.innerText.toLowerCase().includes('claim') || btn.innerText.toLowerCase().includes('reclamar')));
+                         if (b) { b.click(); } else { log("Could not Auto-Trigger the Captcha. Please manually click 'Claim'."); }
+                    }
+
+                    log("Awaiting manual captcha solve. Script standing by...");
+                    while (true) {
+                        if (isCancelled()) return;
+                        let freshQuest;
+                        try { freshQuest = QuestsStore.quests.get(quest.id); } catch(err) {}
+
+                        if (freshQuest && freshQuest.userStatus?.claimedAt) {
+                            log(`SUCCESS: Captcha solved. REWARD CLAIMED for ${questName}!`);
+                            break;
+                        }
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
                 } else {
                     log(`Claim failed: ${getErrorDetails(e)}`);
                 }
