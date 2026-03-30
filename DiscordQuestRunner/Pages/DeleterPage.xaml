@@ -375,7 +375,7 @@
                 BackgroundColor="#FF5F56"
                 Clicked="OnDeleteClicked"
                 CornerRadius="10"
-                CharacterSpacing="2"
+                CharacterSpacing="3"
                 FontAttributes="Bold"
                 FontSize="14"
                 HeightRequest="48"
