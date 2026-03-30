@@ -382,7 +382,7 @@
                 Text="START PURGE"
                 TextColor="White">
                 <Button.Shadow>
-                    <Shadow Brush="#FF5F56" Opacity="0.4" Offset="0,4" Radius="12" />
+                    <Shadow Brush="#FF5F56" Opacity="0.4" Offset="0,4" Radius="14" />
                 </Button.Shadow>
             </Button>
 
