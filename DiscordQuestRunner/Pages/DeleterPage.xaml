@@ -63,7 +63,7 @@
                         CharacterSpacing="1"
                         FontAttributes="Bold"
                         FontSize="10"
-                        Text="AWAITING"
+                        Text="STANDBY"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
                         VerticalOptions="Center" />
                 </HorizontalStackLayout>
