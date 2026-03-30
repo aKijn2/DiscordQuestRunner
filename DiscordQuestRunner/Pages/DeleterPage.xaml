@@ -17,7 +17,7 @@
             ColumnDefinitions="Auto, *, Auto">
             <!-- Title -->
             <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
-                <HorizontalStackLayout Spacing="8">
+                <HorizontalStackLayout Spacing="10">
                     <BoxView
                         BackgroundColor="#FF5F56"
                         CornerRadius="2"
@@ -277,7 +277,7 @@
                     Padding="12,7"
                     BackgroundColor="#121218"
                     ColumnDefinitions="Auto, *, Auto"
-                    ColumnSpacing="8">
+                    ColumnSpacing="10">
                     <HorizontalStackLayout
                         Grid.Column="0"
                         Spacing="5"
