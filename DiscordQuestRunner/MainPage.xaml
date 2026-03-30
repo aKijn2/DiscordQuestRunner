@@ -65,7 +65,7 @@
                         CharacterSpacing="1"
                         FontAttributes="Bold"
                         FontSize="10"
-                        Text="READY"
+                        Text="ONLINE"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
                         VerticalOptions="Center" />
                 </HorizontalStackLayout>
