@@ -343,7 +343,8 @@
         <Grid
             Grid.Row="4"
             ColumnDefinitions="Auto, *, Auto"
-            ColumnSpacing="10">
+            ColumnSpacing="10"
+            Margin="0,0,0,10">
 
             <!-- Spinner cell -->
             <Border
@@ -354,7 +355,7 @@
                 StrokeThickness="1"
                 WidthRequest="46">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="5" />
+                    <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
                 <ActivityIndicator
                     x:Name="LoadingIndicator"
@@ -373,13 +374,17 @@
                 Grid.Column="1"
                 BackgroundColor="#FF5F56"
                 Clicked="OnDeleteClicked"
-                CornerRadius="5"
-                CharacterSpacing="1"
+                CornerRadius="8"
+                CharacterSpacing="2"
                 FontAttributes="Bold"
-                FontSize="13"
+                FontSize="14"
                 HeightRequest="46"
                 Text="START PURGE"
-                TextColor="White" />
+                TextColor="White">
+                <Button.Shadow>
+                    <Shadow Brush="#FF5F56" Opacity="0.4" Offset="0,4" Radius="12" />
+                </Button.Shadow>
+            </Button>
 
             <!-- Abort -->
             <Button
@@ -387,11 +392,11 @@
                 Grid.Column="2"
                 BackgroundColor="Transparent"
                 BorderColor="{StaticResource Magenta}"
-                BorderWidth="1"
+                BorderWidth="1.5"
                 Clicked="OnAbortClicked"
-                CornerRadius="5"
+                CornerRadius="8"
                 FontAttributes="Bold"
-                FontSize="11"
+                FontSize="12"
                 HeightRequest="46"
                 IsEnabled="False"
                 Text="ABORT"
