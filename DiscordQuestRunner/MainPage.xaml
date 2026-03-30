@@ -80,7 +80,7 @@
             Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
             StrokeThickness="1">
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="6" />
+                <RoundRectangle CornerRadius="8" />
             </Border.StrokeShape>
 
             <VerticalStackLayout Spacing="12">
@@ -191,7 +191,7 @@
             Stroke="{StaticResource Primary}"
             StrokeThickness="1">
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="6" />
+                <RoundRectangle CornerRadius="8" />
             </Border.StrokeShape>
 
             <Grid RowDefinitions="Auto, *">
@@ -301,7 +301,7 @@
                 VerticalOptions="Center"
                 WidthRequest="340">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="6" />
+                    <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
 
                 <VerticalStackLayout Spacing="14">
