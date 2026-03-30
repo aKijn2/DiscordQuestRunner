@@ -1,4 +1,4 @@
-﻿<ContentPage
+<ContentPage
     x:Class="DiscordQuestRunner.MainPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -11,7 +11,7 @@
         RowDefinitions="Auto, Auto, *, Auto"
         RowSpacing="14">
 
-        <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
+        <!-- --- HEADER ------------------------------------------------------- -->
         <Grid
             Grid.Row="0"
             ColumnDefinitions="*, Auto">
@@ -38,7 +38,7 @@
                     FontAttributes="Bold"
                     FontSize="24"
                     Margin="11,0,0,0"
-                    Text="Quest Automator"
+                    Text="QUEST AUTOMATOR"
                     TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
             </VerticalStackLayout>
 
@@ -72,7 +72,7 @@
             </Border>
         </Grid>
 
-        <!-- ═══ CONTROL PANEL ════════════════════════════════════════════════ -->
+        <!-- --- CONTROL PANEL ------------------------------------------------ -->
         <Border
             Grid.Row="1"
             Padding="16"
@@ -179,12 +179,12 @@
                     FontAttributes="Bold"
                     FontSize="11"
                     HeightRequest="38"
-                    Text="↳  MESSAGE PURGE"
+                    Text="?  MESSAGE PURGE"
                     TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
             </VerticalStackLayout>
         </Border>
 
-        <!-- ═══ RUNTIME LOG ══════════════════════════════════════════════════ -->
+        <!-- --- RUNTIME LOG -------------------------------------------------- -->
         <Border
             Grid.Row="2"
             BackgroundColor="{StaticResource MidnightBlue}"
@@ -274,16 +274,16 @@
             </Grid>
         </Border>
 
-        <!-- ═══ FOOTER ═══════════════════════════════════════════════════════ -->
+        <!-- --- FOOTER ------------------------------------------------------- -->
         <Label
             Grid.Row="3"
             FontSize="10"
             HorizontalOptions="Center"
             Opacity="0.35"
-            Text="NEXUS // Use responsibly • Check Discord ToS"
+            Text="NEXUS // Use responsibly � Check Discord ToS"
             TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
 
-        <!-- ═══ MODAL OVERLAY ════════════════════════════════════════════════ -->
+        <!-- --- MODAL OVERLAY ------------------------------------------------ -->
         <Grid
             x:Name="ModalOverlay"
             Grid.Row="0"
