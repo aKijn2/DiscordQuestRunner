@@ -1,4 +1,4 @@
-using DiscordQuestRunner.Services;
+﻿using DiscordQuestRunner.Services;
 
 namespace DiscordQuestRunner.Pages
 {
@@ -232,6 +232,13 @@ namespace DiscordQuestRunner.Pages
                 return;
             }
 
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                FoundCountLbl.Text = messageCount.ToString();
+                DeletedCountLbl.Text = "0";
+                ProgressPctLbl.Text = "0%";
+            });
+
             // 5. Final Purge Confirmation Alert
             bool confirmDelete = await ShowNexusAlertAsync(
                 "CONFIRM PURGE",
@@ -270,6 +277,25 @@ namespace DiscordQuestRunner.Pages
                         return;
                     }
                     Log(msg);
+
+                    if (msg.Contains("] Purged message:"))
+                    {
+                        try
+                        {
+                            var bracketPart = msg.Split(']')[0].Trim('[', ' ');
+                            var numbers = bracketPart.Split('/');
+                            if (numbers.Length == 2 && int.TryParse(numbers[0], out int deleted) && int.TryParse(numbers[1], out int total))
+                            {
+                                MainThread.BeginInvokeOnMainThread(() =>
+                                {
+                                    DeletedCountLbl.Text = deleted.ToString();
+                                    int pct = (int)Math.Round((double)deleted / total * 100);
+                                    ProgressPctLbl.Text = pct + "%";
+                                });
+                            }
+                        }
+                        catch { }
+                    }
                 }
             );
 
@@ -292,6 +318,14 @@ namespace DiscordQuestRunner.Pages
             DeleteBtn.IsEnabled = true;
             LoadingIndicator.IsVisible = false;
             LoadingIndicator.IsRunning = false;
+            
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                FoundCountLbl.Text = "—";
+                DeletedCountLbl.Text = "—";
+                ProgressPctLbl.Text = "—";
+            });
         }
     }
 }
+
