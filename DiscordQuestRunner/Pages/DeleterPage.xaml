@@ -115,7 +115,7 @@
                             BackgroundColor="Transparent"
                             FontFamily="Consolas"
                             FontSize="13"
-                            HeightRequest="38"
+                            HeightRequest="40"
                             Keyboard="Numeric"
                             Placeholder="000000000000000000"
                             PlaceholderColor="{AppThemeBinding Light={StaticResource PlaceholderLight}, Dark={StaticResource PlaceholderDark}}"
@@ -152,7 +152,7 @@
                             BackgroundColor="Transparent"
                             FontFamily="Consolas"
                             FontSize="13"
-                            HeightRequest="38"
+                            HeightRequest="40"
                             Keyboard="Numeric"
                             Placeholder="000000000000000000"
                             PlaceholderColor="{AppThemeBinding Light={StaticResource PlaceholderLight}, Dark={StaticResource PlaceholderDark}}"
@@ -468,7 +468,7 @@
                             CornerRadius="4"
                             FontAttributes="Bold"
                             FontSize="12"
-                            HeightRequest="38"
+                            HeightRequest="40"
                             Text="Cancel"
                             TextColor="{StaticResource Gray300}" />
 
@@ -480,7 +480,7 @@
                             CornerRadius="4"
                             FontAttributes="Bold"
                             FontSize="12"
-                            HeightRequest="38"
+                            HeightRequest="40"
                             Text="Confirm Purge"
                             TextColor="White" />
                     </Grid>
