@@ -5,88 +5,122 @@
     BackgroundColor="{AppThemeBinding Light={StaticResource PageBgLight}, Dark={StaticResource PageBgDark}}"
     NavigationPage.HasNavigationBar="False">
 
+    <!-- Root container -->
     <Grid
-        Padding="20"
-        RowDefinitions="Auto, Auto, *"
-        RowSpacing="20">
+        Padding="18,16,18,18"
+        RowDefinitions="Auto, Auto, *, Auto"
+        RowSpacing="14">
 
+        <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
         <Grid
             Grid.Row="0"
-            ColumnDefinitions="*, Auto"
-            VerticalOptions="Center">
+            ColumnDefinitions="*, Auto">
 
-            <VerticalStackLayout Grid.Column="0" Spacing="0">
+            <!-- Brand + title -->
+            <VerticalStackLayout Grid.Column="0" Spacing="1" VerticalOptions="Center">
+                <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                    <!-- Accent bar -->
+                    <BoxView
+                        BackgroundColor="{StaticResource Primary}"
+                        CornerRadius="2"
+                        HeightRequest="18"
+                        WidthRequest="3"
+                        VerticalOptions="Center" />
+                    <Label
+                        FontAttributes="Bold"
+                        FontSize="10"
+                        CharacterSpacing="4"
+                        Text="NEXUS // DISCORD"
+                        TextColor="{StaticResource PrimaryDark}"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
                 <Label
                     FontAttributes="Bold"
-                    FontSize="12"
-                    Text="NEXUS"
-                    TextColor="{StaticResource PrimaryDark}" />
-                <Label
-                    FontAttributes="Bold"
-                    FontSize="22"
+                    FontSize="24"
+                    Margin="11,0,0,0"
                     Text="Quest Automator"
                     TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
             </VerticalStackLayout>
 
+            <!-- Status badge -->
             <Border
                 Grid.Column="1"
-                Padding="10,5"
+                Padding="10,6"
                 BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                 StrokeThickness="1"
                 VerticalOptions="Center">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="4" />
+                    <RoundRectangle CornerRadius="3" />
                 </Border.StrokeShape>
-                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                <HorizontalStackLayout Spacing="7" VerticalOptions="Center">
                     <Ellipse
+                        x:Name="StatusDot"
                         Fill="{StaticResource Primary}"
-                        HeightRequest="8"
-                        VerticalOptions="Center"
-                        WidthRequest="8" />
+                        HeightRequest="7"
+                        WidthRequest="7"
+                        VerticalOptions="Center" />
                     <Label
+                        x:Name="StatusBadgeLbl"
+                        CharacterSpacing="1"
                         FontAttributes="Bold"
-                        FontSize="11"
-                        Text="SYSTEM READY"
+                        FontSize="10"
+                        Text="READY"
                         TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
                         VerticalOptions="Center" />
                 </HorizontalStackLayout>
             </Border>
         </Grid>
 
+        <!-- ═══ CONTROL PANEL ════════════════════════════════════════════════ -->
         <Border
             Grid.Row="1"
-            Padding="20"
+            Padding="16"
             BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
             Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
             StrokeThickness="1">
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="4" />
+                <RoundRectangle CornerRadius="6" />
             </Border.StrokeShape>
 
-            <VerticalStackLayout Spacing="15">
+            <VerticalStackLayout Spacing="12">
 
+                <!-- Auto-accept toggle row -->
                 <Border
-                    Padding="15,10"
+                    Padding="14,10"
                     BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                     Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                     StrokeThickness="1">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="4" />
                     </Border.StrokeShape>
-
-                    <Grid ColumnDefinitions="*, 55">
-                        <Label
+                    <Grid ColumnDefinitions="Auto, *, Auto">
+                        <!-- Icon column -->
+                        <BoxView
                             Grid.Column="0"
-                            FontAttributes="Bold"
-                            FontSize="13"
-                            Text="Auto-Accept New Quests"
-                            TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                            BackgroundColor="{StaticResource Primary}"
+                            CornerRadius="2"
+                            HeightRequest="14"
+                            Margin="0,0,10,0"
+                            WidthRequest="2"
                             VerticalOptions="Center" />
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                            <Label
+                                CharacterSpacing="1"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                Text="AUTO-ACCEPT QUESTS"
+                                TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                            <Label
+                                FontSize="10"
+                                Text="Enrolls in all valid visible quests automatically"
+                                TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+                        </VerticalStackLayout>
 
                         <Switch
                             x:Name="AutoAcceptSwitch"
-                            Grid.Column="1"
+                            Grid.Column="2"
                             HorizontalOptions="End"
                             IsToggled="True"
                             MinimumWidthRequest="0"
@@ -96,38 +130,31 @@
                     </Grid>
                 </Border>
 
-                <Button
-                    x:Name="RunBtn"
-                    Clicked="OnRunClicked"
-                    CornerRadius="4"
-                    FontAttributes="Bold"
-                    FontSize="14"
-                    HeightRequest="45"
-                    Text="INITIALIZE QUESTS"
-                    BackgroundColor="{StaticResource Primary}"
-                    TextColor="White" />
-
-                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="15">
+                <!-- Primary CTA -->
+                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                     <Button
+                        x:Name="RunBtn"
                         Grid.Column="0"
-                        BackgroundColor="{AppThemeBinding Light={StaticResource BtnSecondaryBgLight}, Dark={StaticResource BtnSecondaryBgDark}}"
-                        Clicked="OnOpenDeleterClicked"
-                        CornerRadius="4"
+                        Clicked="OnRunClicked"
+                        CornerRadius="5"
                         FontAttributes="Bold"
-                        FontSize="12"
-                        HeightRequest="40"
-                        Text="Message Deleter"
-                        TextColor="{AppThemeBinding Light={StaticResource BtnSecondaryTextLight}, Dark={StaticResource BtnSecondaryTextDark}}" />
+                        FontSize="13"
+                        CharacterSpacing="1"
+                        HeightRequest="46"
+                        Text="INITIALIZE QUESTS"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White" />
 
+                    <!-- Loading indicator cell -->
                     <Border
                         Grid.Column="1"
                         BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
-                        HeightRequest="40"
+                        HeightRequest="46"
                         Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                         StrokeThickness="1"
-                        WidthRequest="40">
+                        WidthRequest="46">
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="4" />
+                            <RoundRectangle CornerRadius="5" />
                         </Border.StrokeShape>
                         <ActivityIndicator
                             x:Name="LoadingIndicator"
@@ -140,24 +167,43 @@
                             Color="{StaticResource Primary}" />
                     </Border>
                 </Grid>
+
+                <!-- Secondary action -->
+                <Button
+                    BackgroundColor="Transparent"
+                    BorderColor="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
+                    BorderWidth="1"
+                    Clicked="OnOpenDeleterClicked"
+                    CornerRadius="5"
+                    CharacterSpacing="1"
+                    FontAttributes="Bold"
+                    FontSize="11"
+                    HeightRequest="38"
+                    Text="↳  MESSAGE PURGE"
+                    TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
             </VerticalStackLayout>
         </Border>
 
+        <!-- ═══ RUNTIME LOG ══════════════════════════════════════════════════ -->
         <Border
             Grid.Row="2"
             BackgroundColor="{StaticResource MidnightBlue}"
             Stroke="{StaticResource Primary}"
             StrokeThickness="1">
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="4" />
+                <RoundRectangle CornerRadius="6" />
             </Border.StrokeShape>
 
             <Grid RowDefinitions="Auto, *">
+
+                <!-- Log toolbar -->
                 <Grid
                     Grid.Row="0"
-                    Padding="10,8"
-                    BackgroundColor="#1A1A1A"
-                    ColumnDefinitions="Auto, *, Auto">
+                    Padding="12,7"
+                    BackgroundColor="#121218"
+                    ColumnDefinitions="Auto, *, Auto, Auto"
+                    ColumnSpacing="8">
+
                     <Label
                         Grid.Column="0"
                         FontAttributes="Bold"
@@ -169,80 +215,129 @@
 
                     <Label
                         Grid.Column="1"
-                        Margin="10,0,0,0"
+                        CharacterSpacing="1"
                         FontAttributes="Bold"
-                        FontSize="11"
-                        Text="Runtime Log"
-                        TextColor="{StaticResource Gray300}"
+                        FontSize="10"
+                        Text="RUNTIME LOG"
+                        TextColor="{StaticResource Gray400}"
                         VerticalOptions="Center" />
 
-                    <Button
+                    <!-- Line count badge -->
+                    <Border
                         Grid.Column="2"
-                        Padding="15,0"
-                        BackgroundColor="{StaticResource Primary}"
+                        Padding="8,3"
+                        BackgroundColor="#1E1E28"
+                        Stroke="{StaticResource BorderDark}"
+                        StrokeThickness="1"
+                        VerticalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="3" />
+                        </Border.StrokeShape>
+                        <Label
+                            x:Name="LineCountLbl"
+                            FontFamily="Consolas"
+                            FontSize="10"
+                            Text="3 lines"
+                            TextColor="{StaticResource Gray500}"
+                            VerticalOptions="Center" />
+                    </Border>
+
+                    <Button
+                        Grid.Column="3"
+                        Padding="12,0"
+                        BackgroundColor="Transparent"
+                        BorderColor="{StaticResource Primary}"
+                        BorderWidth="1"
                         Clicked="OnCopyLogClicked"
-                        CornerRadius="4"
+                        CornerRadius="3"
                         FontAttributes="Bold"
-                        FontSize="11"
+                        FontSize="10"
+                        CharacterSpacing="1"
                         HeightRequest="26"
-                        Text="Copy"
-                        TextColor="White" />
+                        Text="COPY"
+                        TextColor="{StaticResource Primary}" />
                 </Grid>
 
+                <!-- Scrollable log output -->
                 <ScrollView
                     x:Name="LogScroll"
                     Grid.Row="1"
-                    Padding="15">
+                    Padding="14,12">
                     <Label
                         x:Name="StatusLbl"
                         FontFamily="Consolas"
                         FontSize="12"
-                        LineHeight="1.5"
+                        LineHeight="1.6"
                         Text="[SYS] Connecting to Discord API...&#10;[SYS] Awaiting authorization...&#10;[SYS] Standing by."
                         TextColor="{StaticResource Secondary}" />
                 </ScrollView>
             </Grid>
         </Border>
 
+        <!-- ═══ FOOTER ═══════════════════════════════════════════════════════ -->
+        <Label
+            Grid.Row="3"
+            FontSize="10"
+            HorizontalOptions="Center"
+            Opacity="0.35"
+            Text="NEXUS // Use responsibly • Check Discord ToS"
+            TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+
+        <!-- ═══ MODAL OVERLAY ════════════════════════════════════════════════ -->
         <Grid
             x:Name="ModalOverlay"
             Grid.Row="0"
-            Grid.RowSpan="3"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            BackgroundColor="#B3000000"
+            Grid.RowSpan="4"
+            BackgroundColor="Transparent"
             IsVisible="False"
-            Opacity="0"
+            Opacity="1"
             ZIndex="999">
             <Border
-                Padding="20"
+                Padding="22"
                 BackgroundColor="{StaticResource MidnightBlue}"
                 HorizontalOptions="Center"
                 Stroke="{StaticResource Primary}"
                 StrokeThickness="1"
                 VerticalOptions="Center"
-                WidthRequest="350">
+                WidthRequest="340">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="4" />
+                    <RoundRectangle CornerRadius="6" />
                 </Border.StrokeShape>
 
-                <VerticalStackLayout Spacing="15">
-                    <Label
-                        x:Name="AlertTitleLbl"
-                        FontAttributes="Bold"
-                        FontSize="15"
-                        Text="SYSTEM ALERT"
-                        TextColor="White" />
+                <VerticalStackLayout Spacing="14">
+
+                    <!-- Modal header -->
+                    <HorizontalStackLayout Spacing="10">
+                        <BoxView
+                            BackgroundColor="{StaticResource Primary}"
+                            CornerRadius="2"
+                            HeightRequest="18"
+                            WidthRequest="3"
+                            VerticalOptions="Center" />
+                        <Label
+                            x:Name="AlertTitleLbl"
+                            CharacterSpacing="1"
+                            FontAttributes="Bold"
+                            FontSize="13"
+                            Text="SYSTEM ALERT"
+                            TextColor="White"
+                            VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <!-- Divider -->
+                    <BoxView
+                        BackgroundColor="{StaticResource BorderDark}"
+                        HeightRequest="1" />
 
                     <Label
                         x:Name="AlertMessageLbl"
                         FontSize="13"
-                        LineHeight="1.4"
+                        LineHeight="1.5"
                         Text="This is a custom alert message."
                         TextColor="{StaticResource Gray200}" />
 
                     <Grid
-                        Margin="0,10,0,0"
+                        Margin="0,6,0,0"
                         ColumnDefinitions="*, *"
                         ColumnSpacing="10">
                         <Button
@@ -255,9 +350,9 @@
                             CornerRadius="4"
                             FontAttributes="Bold"
                             FontSize="12"
-                            HeightRequest="36"
+                            HeightRequest="38"
                             Text="Cancel"
-                            TextColor="{StaticResource Gray200}" />
+                            TextColor="{StaticResource Gray300}" />
 
                         <Button
                             x:Name="AlertConfirmBtn"
@@ -267,8 +362,8 @@
                             CornerRadius="4"
                             FontAttributes="Bold"
                             FontSize="12"
-                            HeightRequest="36"
-                            Text="OK"
+                            HeightRequest="38"
+                            Text="Confirm"
                             TextColor="White" />
                     </Grid>
                 </VerticalStackLayout>
