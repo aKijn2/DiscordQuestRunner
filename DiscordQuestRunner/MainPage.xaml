@@ -109,7 +109,7 @@
                             <Label
                                 CharacterSpacing="2"
                                 FontAttributes="Bold"
-                                FontSize="12"
+                                FontSize="13"
                                 Text="AUTO-ACCEPT QUESTS"
                                 TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
                             <Label
@@ -266,7 +266,7 @@
                     <Label
                         x:Name="StatusLbl"
                         FontFamily="Consolas"
-                        FontSize="12"
+                        FontSize="13"
                         LineHeight="1.6"
                         Text="[SYS] Connecting to Discord API...&#10;[SYS] Awaiting authorization...&#10;[SYS] Standing by."
                         TextColor="{StaticResource Secondary}" />
@@ -349,7 +349,7 @@
                             Clicked="OnAlertCancelClicked"
                             CornerRadius="6"
                             FontAttributes="Bold"
-                            FontSize="12"
+                            FontSize="13"
                             HeightRequest="38"
                             Text="Cancel"
                             TextColor="{StaticResource Gray300}" />
@@ -361,7 +361,7 @@
                             Clicked="OnAlertConfirmClicked"
                             CornerRadius="6"
                             FontAttributes="Bold"
-                            FontSize="12"
+                            FontSize="13"
                             HeightRequest="38"
                             Text="Confirm"
                             TextColor="White" />
