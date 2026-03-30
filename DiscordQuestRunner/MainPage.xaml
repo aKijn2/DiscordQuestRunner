@@ -9,7 +9,7 @@
     <Grid
         Padding="24,20,24,20"
         RowDefinitions="Auto, Auto, *, Auto"
-        RowSpacing="14">
+        RowSpacing="16">
 
         <!-- --- HEADER ------------------------------------------------------- -->
         <Grid
