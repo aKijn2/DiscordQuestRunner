@@ -136,7 +136,7 @@
                         x:Name="RunBtn"
                         Grid.Column="0"
                         Clicked="OnRunClicked"
-                        CornerRadius="5"
+                        CornerRadius="6"
                         FontAttributes="Bold"
                         FontSize="13"
                         CharacterSpacing="2"
@@ -154,7 +154,7 @@
                         StrokeThickness="1"
                         WidthRequest="46">
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="5" />
+                            <RoundRectangle CornerRadius="6" />
                         </Border.StrokeShape>
                         <ActivityIndicator
                             x:Name="LoadingIndicator"
@@ -174,7 +174,7 @@
                     BorderColor="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                     BorderWidth="1"
                     Clicked="OnOpenDeleterClicked"
-                    CornerRadius="5"
+                    CornerRadius="6"
                     CharacterSpacing="2"
                     FontAttributes="Bold"
                     FontSize="11"
