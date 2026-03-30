@@ -75,7 +75,7 @@
         <!-- --- CONTROL PANEL ------------------------------------------------ -->
         <Border
             Grid.Row="1"
-            Padding="16"
+            Padding="18"
             BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
             Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
             StrokeThickness="1">
