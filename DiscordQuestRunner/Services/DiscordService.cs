@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -339,6 +339,13 @@ if (argsNode != null)
                                 }
                             }
                             catch { }
+                        }
+
+
+                        if (rawPayload == "[DQR] CLICK_CAPTCHA_NOTFOUND")
+                        {
+                            log("Captcha iframe not found in DOM yet - waiting...", LogLevel.Warning);
+                            continue;
                         }
 
                         log(m, LogLevel.Script);

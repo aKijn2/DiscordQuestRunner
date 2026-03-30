@@ -104,41 +104,50 @@
                          if (b) { b.click(); } else { log("Could not Auto-Trigger the Captcha. Please manually click 'Claim'."); }
                     }
 
-                    log("Awaiting manual captcha solve. Script standing by...");
-                    let autoClickAttempted = false;
+                    log("Awaiting captcha solve — auto-clicking if possible...");
                     while (true) {
                         if (isCancelled()) return;
-                        
-                        // Captcha Auto-Clicker Core
-                        if (!autoClickAttempted) {
-                            try {
-                                const frames = document.querySelectorAll('iframe');
-                                for (let i = 0; i < frames.length; i++) {
-                                    if ((frames[i].src && frames[i].src.includes("hcaptcha")) || (frames[i].title && frames[i].title.toLowerCase().includes("hcaptcha"))) {
-                                        const rect = frames[i].getBoundingClientRect();
-                                        if (rect.width > 50 && rect.height > 50 && rect.left > 0) {
-                                            // The hCaptcha "I am human" checkbox is approximately 35px from the left edge 
-                                            // and horizontally centered within the initial small iframe.
-                                            originalConsole.log("[DQR] Found iframe: " + frames[i].src + " width=" + rect.width + " height=" + rect.height);
-                                            const cx = Math.round(rect.left + 35);
-                                            const cy = Math.round(rect.top + (rect.height / 2));
-                                            originalConsole.log(`[DQR] CLICK_CAPTCHA:${cx},${cy}`);
-                                            autoClickAttempted = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            } catch(err) { }
-                        }
 
                         let freshQuest;
-                        try { freshQuest = QuestsStore.quests.get(quest.id); } catch(err) {}
-
+                        try { freshQuest = QuestsStore.quests.get(quest.id); } catch(e2) {}
                         if (freshQuest && freshQuest.userStatus?.claimedAt) {
                             log(`SUCCESS: Captcha solved. REWARD CLAIMED for ${questName}!`);
                             break;
                         }
-                        await new Promise(r => setTimeout(r, 2000));
+
+                        try {
+                            const allFrames = Array.from(document.querySelectorAll("iframe"));
+                            originalConsole.log("[DQR] iframe count: " + allFrames.length);
+                            for (let i = 0; i < allFrames.length; i++) {
+                                const f = allFrames[i];
+                                const r = f.getBoundingClientRect();
+                                originalConsole.log(`[DQR] iframe[`+i+`] src="`+f.src+`" title="`+f.title+`" w=`+Math.round(r.width)+` h=`+Math.round(r.height)+` l=`+Math.round(r.left)+` t=`+Math.round(r.top));
+                            }
+
+                            let target = allFrames.find(f =>
+                                (f.src && f.src.includes("hcaptcha")) ||
+                                (f.title && f.title.toLowerCase().includes("hcaptcha"))
+                            );
+                            if (!target) {
+                                target = allFrames.find(f => {
+                                    const r = f.getBoundingClientRect();
+                                    return r.width > 100 && r.width < 500 && r.height > 30 && r.height < 120 && r.top > 0;
+                                });
+                            }
+
+                            if (target) {
+                                const rect = target.getBoundingClientRect();
+                                const cx = Math.round(rect.left + 35);
+                                const cy = Math.round(rect.top + rect.height / 2);
+                                originalConsole.log("[DQR] CLICK_CAPTCHA:" + cx + "," + cy);
+                            } else {
+                                originalConsole.log("[DQR] CLICK_CAPTCHA_NOTFOUND");
+                            }
+                        } catch(e3) {
+                            originalConsole.log("[DQR] iframe scan error: " + e3.message);
+                        }
+
+                        await new Promise(r => setTimeout(r, 2500));
                     }
                 } else {
                     log(`Claim failed: ${getErrorDetails(e)}`);
