@@ -87,7 +87,7 @@
 
                 <!-- Auto-accept toggle row -->
                 <Border
-                    Padding="14,10"
+                    Padding="16,12"
                     BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                     Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                     StrokeThickness="1">
