@@ -1,6 +1,6 @@
-# Discord Quest Runner [NEXUS]
+﻿# Discord Quest Runner [NEXUS]
 
-> ⚠️ **Update Notice:** Release **1.3.0** will be coming in less than 3 weeks after fixing some recent problems that have been found.
+> âš ï¸ **Update Notice:** Release **1.3.0** will be coming in less than 3 weeks after fixing some recent problems that have been found.
 
 A Windows tool for automating supported Discord quest flows and message cleanup through the Discord desktop client.
 
@@ -115,7 +115,7 @@ Try this:
 ### Message deletion
 
 - **Targeted cleanup**: Delete messages for a selected user in a channel.
-- **Safer workflow**: Analyze → count → confirm → delete.
+- **Safer workflow**: Analyze â†’ count â†’ confirm â†’ delete.
 - **Live log output**: See progress in real time.
 - **Abort support**: Stop a deletion run immediately.
 
@@ -153,7 +153,7 @@ dotnet run -f net9.0-windows10.0.19041.0
 - [x] **Auto-Accept Quests**: Automatically accept currently valid visible quests.
 - [ ] **Fix Watch Video**: When accepted more than 4 quests the video quest starts first but stops on 14%.
 - [x] **STATS ROW**: Implement stats row logic.
-- [ ] **Captcha Handling**: Improve workflow around manual captcha interruptions.
+- [x] **Captcha Handling**: Improve workflow around manual captcha interruptions.
 - [ ] **Persistence**: Save message purge targets locally.
 - [ ] **Refactor**: Clean up and modularize service code.
 - [ ] **Documentation**: Expand internal code comments and technical docs.
