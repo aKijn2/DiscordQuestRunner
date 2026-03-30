@@ -12,6 +12,14 @@ namespace DiscordQuestRunner.Pages
         {
             InitializeComponent();
             _discordService = discordService;
+
+            Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoBorder", (handler, view) =>
+    {
+#if WINDOWS
+        handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+        handler.PlatformView.Background = null;
+#endif
+    });
         }
 
         // ==========================================
