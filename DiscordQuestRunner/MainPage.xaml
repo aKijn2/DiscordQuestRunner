@@ -51,7 +51,7 @@
                 StrokeThickness="1"
                 VerticalOptions="Center">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="3" />
+                    <RoundRectangle CornerRadius="4" />
                 </Border.StrokeShape>
                 <HorizontalStackLayout Spacing="7" VerticalOptions="Center">
                     <Ellipse
@@ -231,7 +231,7 @@
                         StrokeThickness="1"
                         VerticalOptions="Center">
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="3" />
+                            <RoundRectangle CornerRadius="4" />
                         </Border.StrokeShape>
                         <Label
                             x:Name="LineCountLbl"
@@ -249,7 +249,7 @@
                         BorderColor="{StaticResource Primary}"
                         BorderWidth="1"
                         Clicked="OnCopyLogClicked"
-                        CornerRadius="3"
+                        CornerRadius="4"
                         FontAttributes="Bold"
                         FontSize="10"
                         CharacterSpacing="1"
