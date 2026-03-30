@@ -149,6 +149,7 @@ dotnet run -f net9.0-windows10.0.19041.0
 ## Roadmap
 
 - [x] **Auto-Accept Quests**: Automatically accept currently valid visible quests.
+- [ ] **Fix Watch Video**: When accepted more than 4 quests the video quest starts first but stops on 14%.
 - [ ] **Captcha Handling**: Improve workflow around manual captcha interruptions.
 - [ ] **Persistence**: Save message purge targets locally.
 - [ ] **Refactor**: Clean up and modularize service code.

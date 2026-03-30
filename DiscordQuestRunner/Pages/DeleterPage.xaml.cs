@@ -12,6 +12,14 @@ namespace DiscordQuestRunner.Pages
         {
             InitializeComponent();
             _discordService = discordService;
+
+            Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoBorder", (handler, view) =>
+    {
+#if WINDOWS
+        handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+        handler.PlatformView.Background = null;
+#endif
+    });
         }
 
         // ==========================================
@@ -276,27 +284,6 @@ namespace DiscordQuestRunner.Pages
                 "ACKNOWLEDGE"
             );
 #endif
-        }
-
-        // Add this method anywhere inside your DeleterPage class
-        private async void OnBackClicked(object sender, EventArgs e)
-        {
-            // If a purge is currently running, maybe ask for confirmation first!
-            if (_isAborting || !DeleteBtn.IsEnabled)
-            {
-                bool leave = await ShowNexusAlertAsync(
-                    "WARNING",
-                    "A process is currently active. Are you sure you want to leave?",
-                    "LEAVE",
-                    "STAY"
-                );
-
-                if (!leave)
-                    return;
-            }
-
-            // Slide back to the main quest runner page
-            await Navigation.PopAsync();
         }
 
         // Helper method to clean up repetitive state resets
