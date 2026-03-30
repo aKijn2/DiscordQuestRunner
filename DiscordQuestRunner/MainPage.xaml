@@ -30,7 +30,7 @@
                         FontAttributes="Bold"
                         FontSize="10"
                         CharacterSpacing="4"
-                        Text="NEXUS // DISCORD"
+                        Text="NEXUS :: DISCORD"
                         TextColor="{StaticResource PrimaryDark}"
                         VerticalOptions="Center" />
                 </HorizontalStackLayout>
