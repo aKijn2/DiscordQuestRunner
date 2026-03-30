@@ -1,5 +1,7 @@
 # Discord Quest Runner [NEXUS]
 
+> ⚠️ **Update Notice:** Release **1.3.0** will be coming in less than 3 weeks after fixing some recent problems that have been found.
+
 > A Windows tool for automating supported Discord quest flows and message cleanup through the Discord desktop client.
 
 Built with **.NET MAUI 9**, this app connects to Discord through the Chrome DevTools Protocol (CDP) and injects JavaScript payloads into the running desktop client.
