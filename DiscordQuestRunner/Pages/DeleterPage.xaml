@@ -46,7 +46,7 @@
                 Padding="12,6"
                 BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
-                StrokeThickness="1"
+                StrokeThickness="1.5"
                 VerticalOptions="Center">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="3" />
@@ -76,7 +76,7 @@
             Padding="24"
             BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
             Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
-            StrokeThickness="1">
+            StrokeThickness="1.5">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="10" />
             </Border.StrokeShape>
@@ -106,7 +106,7 @@
                         Padding="12,0"
                         BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                         Stroke="{StaticResource PrimaryDark}"
-                        StrokeThickness="1">
+                        StrokeThickness="1.5">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="6" />
                         </Border.StrokeShape>
@@ -143,7 +143,7 @@
                         Padding="12,0"
                         BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                         Stroke="{StaticResource PrimaryDark}"
-                        StrokeThickness="1">
+                        StrokeThickness="1.5">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="6" />
                         </Border.StrokeShape>
@@ -174,7 +174,7 @@
                 Padding="14,14"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
-                StrokeThickness="1">
+                StrokeThickness="1.5">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="10" />
                 </Border.StrokeShape>
@@ -234,7 +234,7 @@
                 Padding="14,14"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
-                StrokeThickness="1">
+                StrokeThickness="1.5">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="10" />
                 </Border.StrokeShape>
@@ -264,7 +264,7 @@
             Grid.Row="3"
             BackgroundColor="{StaticResource MidnightBlue}"
             Stroke="{StaticResource Primary}"
-            StrokeThickness="1">
+            StrokeThickness="1.5">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="8" />
             </Border.StrokeShape>
@@ -352,7 +352,7 @@
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 HeightRequest="48"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
-                StrokeThickness="1"
+                StrokeThickness="1.5"
                 WidthRequest="46">
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="10" />
@@ -418,7 +418,7 @@
                 BackgroundColor="{StaticResource MidnightBlue}"
                 HorizontalOptions="Center"
                 Stroke="#FF5F56"
-                StrokeThickness="1"
+                StrokeThickness="1.5"
                 VerticalOptions="Center"
                 WidthRequest="340">
                 <Border.StrokeShape>
