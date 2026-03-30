@@ -209,7 +209,7 @@
                         FontAttributes="Bold"
                         FontFamily="Consolas"
                         FontSize="13"
-                        Text=">_"
+                        Text="SYS >"
                         TextColor="{StaticResource PrimaryDark}"
                         VerticalOptions="Center" />
 
