@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -305,35 +305,42 @@ if (argsNode != null)
                     if (!string.IsNullOrWhiteSpace(msg) && !IsNoise(msg))
                     {
                         var m = msg.Trim();
-                        if (m.StartsWith("[DQR] CLICK_CAPTCHA:"))
+
+                        // Strip the [DQR SCRIPT] wrapper the JS log helper prepends
+                        const string scriptPrefix = "[DQR SCRIPT] ";
+                        var rawPayload = m.StartsWith(scriptPrefix)
+                            ? m.Substring(scriptPrefix.Length).Trim()
+                            : m;
+
+                        if (rawPayload.StartsWith("[DQR] CLICK_CAPTCHA:"))
                         {
                             try
                             {
-                                var parts = m.Substring("[DQR] CLICK_CAPTCHA:".Length).Split(',');
-                                if (parts.Length == 2 && int.TryParse(parts[0], out int cx) && int.TryParse(parts[1], out int cy))
+                                var coords = rawPayload.Substring("[DQR] CLICK_CAPTCHA:".Length).Split(',');
+                                if (coords.Length == 2 && int.TryParse(coords[0].Trim(), out int cx) && int.TryParse(coords[1].Trim(), out int cy))
                                 {
-                                    log($"Auto-clicking Captcha precisely at X:{cx} Y:{cy}...", LogLevel.Success);
-                                    
-                                    // Non-blocking fire-and-forget so we don't stall the websocket reader loop
+                                    log($"Auto-clicking Captcha at X:{cx} Y:{cy}...", LogLevel.Success);
+
+                                    // Non-blocking so the websocket reader loop is never stalled
                                     _ = Task.Run(async () =>
                                     {
                                         try
                                         {
                                             await SendCdpAsync(ws, 9001, "Input.dispatchMouseEvent", new { type = "mouseMoved", x = cx, y = cy }, ct);
-                                            await Task.Delay(50, ct);
+                                            await Task.Delay(80, ct);
                                             await SendCdpAsync(ws, 9002, "Input.dispatchMouseEvent", new { type = "mousePressed", x = cx, y = cy, button = "left", clickCount = 1 }, ct);
-                                            await Task.Delay(50, ct);
+                                            await Task.Delay(80, ct);
                                             await SendCdpAsync(ws, 9003, "Input.dispatchMouseEvent", new { type = "mouseReleased", x = cx, y = cy, button = "left", clickCount = 1 }, ct);
                                         }
-                                        catch { /* silently handle if token canceled */ }
+                                        catch { }
                                     }, ct);
-                                    
+
                                     continue;
                                 }
                             }
                             catch { }
                         }
-                        
+
                         log(m, LogLevel.Script);
                     }
                     continue;
