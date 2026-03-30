@@ -101,8 +101,31 @@
                     }
 
                     log("Awaiting manual captcha solve. Script standing by...");
+                    let autoClickAttempted = false;
                     while (true) {
                         if (isCancelled()) return;
+                        
+                        // Captcha Auto-Clicker Core
+                        if (!autoClickAttempted) {
+                            try {
+                                const frames = document.querySelectorAll('iframe');
+                                for (let i = 0; i < frames.length; i++) {
+                                    if (frames[i].src && frames[i].src.includes('hcaptcha.com')) {
+                                        const rect = frames[i].getBoundingClientRect();
+                                        if (rect.width > 50 && rect.height > 50 && rect.left > 0) {
+                                            // The hCaptcha "I am human" checkbox is approximately 35px from the left edge 
+                                            // and horizontally centered within the initial small iframe.
+                                            const cx = Math.round(rect.left + 35);
+                                            const cy = Math.round(rect.top + (rect.height / 2));
+                                            console.log(`[DQR] CLICK_CAPTCHA:${cx},${cy}`);
+                                            autoClickAttempted = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            } catch(err) { }
+                        }
+
                         let freshQuest;
                         try { freshQuest = QuestsStore.quests.get(quest.id); } catch(err) {}
 

@@ -292,9 +292,42 @@ namespace DiscordQuestRunner.Services
                 {
                     var msg = root["params"]?["args"]?[0]?["value"]?.ToString();
                     if (!string.IsNullOrWhiteSpace(msg) && !IsNoise(msg))
-                        log(msg.Trim(), LogLevel.Script);
+                    {
+                        var m = msg.Trim();
+                        if (m.StartsWith("[DQR] CLICK_CAPTCHA:"))
+                        {
+                            try
+                            {
+                                var parts = m.Substring("[DQR] CLICK_CAPTCHA:".Length).Split(',');
+                                if (parts.Length == 2 && int.TryParse(parts[0], out int cx) && int.TryParse(parts[1], out int cy))
+                                {
+                                    log($"Auto-clicking Captcha precisely at X:{cx} Y:{cy}...", LogLevel.Success);
+                                    
+                                    // Non-blocking fire-and-forget so we don't stall the websocket reader loop
+                                    _ = Task.Run(async () =>
+                                    {
+                                        try
+                                        {
+                                            await SendCdpAsync(ws, 9001, "Input.dispatchMouseEvent", new { type = "mouseMoved", x = cx, y = cy }, ct);
+                                            await Task.Delay(50, ct);
+                                            await SendCdpAsync(ws, 9002, "Input.dispatchMouseEvent", new { type = "mousePressed", x = cx, y = cy, button = "left", clickCount = 1 }, ct);
+                                            await Task.Delay(50, ct);
+                                            await SendCdpAsync(ws, 9003, "Input.dispatchMouseEvent", new { type = "mouseReleased", x = cx, y = cy, button = "left", clickCount = 1 }, ct);
+                                        }
+                                        catch { /* silently handle if token canceled */ }
+                                    }, ct);
+                                    
+                                    continue;
+                                }
+                            }
+                            catch { }
+                        }
+                        
+                        log(m, LogLevel.Script);
+                    }
                     continue;
                 }
+
 
                 // ── Final script result ────────────────────────────────────
                 if (id == SCRIPT_COMMAND_ID)
