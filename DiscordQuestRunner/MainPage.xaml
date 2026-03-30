@@ -140,7 +140,7 @@
                         FontAttributes="Bold"
                         FontSize="13"
                         CharacterSpacing="2"
-                        HeightRequest="46"
+                        HeightRequest="48"
                         Text="INITIALIZE QUESTS"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="White" />
@@ -149,7 +149,7 @@
                     <Border
                         Grid.Column="1"
                         BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
-                        HeightRequest="46"
+                        HeightRequest="48"
                         Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                         StrokeThickness="1"
                         WidthRequest="46">
