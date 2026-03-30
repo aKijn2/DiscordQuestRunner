@@ -84,7 +84,7 @@
                 <Shadow Brush="Black" Opacity="0.2" Offset="0,4" Radius="10" />
             </Border.Shadow>
 
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
 
                 <!-- Channel ID -->
                 <VerticalStackLayout Grid.Column="0" Spacing="6">
