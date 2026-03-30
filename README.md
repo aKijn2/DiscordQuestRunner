@@ -152,7 +152,7 @@ dotnet run -f net9.0-windows10.0.19041.0
 
 - [x] **Auto-Accept Quests**: Automatically accept currently valid visible quests.
 - [ ] **Fix Watch Video**: When accepted more than 4 quests the video quest starts first but stops on 14%.
-- [ ] **STATS ROW**: Implement stats row logic (right now it doesn't give you the info).
+- [x] **STATS ROW**: Implement stats row logic (right now it doesn't give you the info).
 - [ ] **Captcha Handling**: Improve workflow around manual captcha interruptions.
 - [ ] **Persistence**: Save message purge targets locally.
 - [ ] **Refactor**: Clean up and modularize service code.
