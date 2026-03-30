@@ -108,7 +108,7 @@
                         Stroke="{StaticResource PrimaryDark}"
                         StrokeThickness="1">
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="4" />
+                            <RoundRectangle CornerRadius="6" />
                         </Border.StrokeShape>
                         <Entry
                             x:Name="ChannelIdEntry"
@@ -145,7 +145,7 @@
                         Stroke="{StaticResource PrimaryDark}"
                         StrokeThickness="1">
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="4" />
+                            <RoundRectangle CornerRadius="6" />
                         </Border.StrokeShape>
                         <Entry
                             x:Name="UserIdEntry"
@@ -465,7 +465,7 @@
                             BorderColor="{StaticResource Gray600}"
                             BorderWidth="1"
                             Clicked="OnAlertCancelClicked"
-                            CornerRadius="4"
+                            CornerRadius="6"
                             FontAttributes="Bold"
                             FontSize="13"
                             HeightRequest="40"
@@ -477,7 +477,7 @@
                             Grid.Column="1"
                             BackgroundColor="#FF5F56"
                             Clicked="OnAlertConfirmClicked"
-                            CornerRadius="4"
+                            CornerRadius="6"
                             FontAttributes="Bold"
                             FontSize="13"
                             HeightRequest="40"
