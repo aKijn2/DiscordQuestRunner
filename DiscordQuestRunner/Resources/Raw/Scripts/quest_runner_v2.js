@@ -82,6 +82,45 @@
         const claimQuest = async (quest) => {
             const questName = getQuestName(quest);
             log(`Claiming reward for: ${questName}...`);
+
+            // Discord shows the captcha UI WHILE the api.post is still pending.
+            // We run the iframe clicker concurrently so it can act during that window.
+            let stopAutoClicker = false;
+            const autoClickerTask = (async () => {
+                await new Promise(r => setTimeout(r, 600));
+                while (!stopAutoClicker) {
+                    try {
+                        const allFrames = Array.from(document.querySelectorAll("iframe"));
+                        originalConsole.log("[DQR] iframe count: " + allFrames.length);
+                        for (let i = 0; i < allFrames.length; i++) {
+                            const f = allFrames[i];
+                            const r = f.getBoundingClientRect();
+                            originalConsole.log("[DQR] iframe[" + i + "] src=" + f.src + " title=" + f.title + " w=" + Math.round(r.width) + " h=" + Math.round(r.height) + " l=" + Math.round(r.left) + " t=" + Math.round(r.top));
+                        }
+                        let target = allFrames.find(f =>
+                            (f.src && f.src.includes("hcaptcha")) ||
+                            (f.title && f.title.toLowerCase().includes("hcaptcha"))
+                        ) || allFrames.find(f => {
+                            const r = f.getBoundingClientRect();
+                            return r.width > 100 && r.width < 500 && r.height > 30 && r.height < 120 && r.top > 0;
+                        });
+                        if (target) {
+                            const rect = target.getBoundingClientRect();
+                            const cx = Math.round(rect.left + 35);
+                            const cy = Math.round(rect.top + rect.height / 2);
+                            originalConsole.log("[DQR] CLICK_CAPTCHA:" + cx + "," + cy);
+                            await new Promise(r => setTimeout(r, 3000));
+                        } else {
+                            originalConsole.log("[DQR] CLICK_CAPTCHA_NOTFOUND");
+                            await new Promise(r => setTimeout(r, 1500));
+                        }
+                    } catch(err) {
+                        originalConsole.log("[DQR] clicker error: " + err.message);
+                        await new Promise(r => setTimeout(r, 1500));
+                    }
+                }
+            })();
+
             try {
                 await api.post({
                     url: `/quests/${quest.id}/claim-reward`,
@@ -90,68 +129,22 @@
                 log(`REWARD CLAIMED: ${questName}`);
             } catch(e) {
                 if(e.body && (e.body.code === 50035 || e.body.captcha_key)) {
-                    log(`CAPTCHA REQUIRED for ${questName}. Triggering UI popup...`);
-                    
-                    let NativeActions = Object.values(wpRequire.c).find(x => x?.exports?.Z?.claimQuestReward)?.exports?.Z 
-                                     || Object.values(wpRequire.c).find(x => x?.exports?.Z?.claimReward)?.exports?.Z;
-                    
-                    if (NativeActions && typeof NativeActions.claimQuestReward === 'function') {
-                         try { NativeActions.claimQuestReward(quest.id); } catch(err) { log("Native action trap failed."); }
-                    } else if (NativeActions && typeof NativeActions.claimReward === 'function') {
-                         try { NativeActions.claimReward(quest.id); } catch(err) { log("Native action trap failed."); }
-                    } else {
-                         const b = Array.from(document.querySelectorAll('button')).find(btn => btn.innerText && btn.innerText.length > 2 && (btn.innerText.toLowerCase().includes('claim') || btn.innerText.toLowerCase().includes('reclamar')));
-                         if (b) { b.click(); } else { log("Could not Auto-Trigger the Captcha. Please manually click 'Claim'."); }
-                    }
-
-                    log("Awaiting captcha solve — auto-clicking if possible...");
+                    log(`CAPTCHA REQUIRED for ${questName}. Waiting for user to solve...`);
                     while (true) {
-                        if (isCancelled()) return;
-
+                        if (isCancelled()) break;
                         let freshQuest;
                         try { freshQuest = QuestsStore.quests.get(quest.id); } catch(e2) {}
                         if (freshQuest && freshQuest.userStatus?.claimedAt) {
                             log(`SUCCESS: Captcha solved. REWARD CLAIMED for ${questName}!`);
                             break;
                         }
-
-                        try {
-                            const allFrames = Array.from(document.querySelectorAll("iframe"));
-                            originalConsole.log("[DQR] iframe count: " + allFrames.length);
-                            for (let i = 0; i < allFrames.length; i++) {
-                                const f = allFrames[i];
-                                const r = f.getBoundingClientRect();
-                                originalConsole.log(`[DQR] iframe[`+i+`] src="`+f.src+`" title="`+f.title+`" w=`+Math.round(r.width)+` h=`+Math.round(r.height)+` l=`+Math.round(r.left)+` t=`+Math.round(r.top));
-                            }
-
-                            let target = allFrames.find(f =>
-                                (f.src && f.src.includes("hcaptcha")) ||
-                                (f.title && f.title.toLowerCase().includes("hcaptcha"))
-                            );
-                            if (!target) {
-                                target = allFrames.find(f => {
-                                    const r = f.getBoundingClientRect();
-                                    return r.width > 100 && r.width < 500 && r.height > 30 && r.height < 120 && r.top > 0;
-                                });
-                            }
-
-                            if (target) {
-                                const rect = target.getBoundingClientRect();
-                                const cx = Math.round(rect.left + 35);
-                                const cy = Math.round(rect.top + rect.height / 2);
-                                originalConsole.log("[DQR] CLICK_CAPTCHA:" + cx + "," + cy);
-                            } else {
-                                originalConsole.log("[DQR] CLICK_CAPTCHA_NOTFOUND");
-                            }
-                        } catch(e3) {
-                            originalConsole.log("[DQR] iframe scan error: " + e3.message);
-                        }
-
-                        await new Promise(r => setTimeout(r, 2500));
+                        await new Promise(r => setTimeout(r, 2000));
                     }
                 } else {
                     log(`Claim failed: ${getErrorDetails(e)}`);
                 }
+            } finally {
+                stopAutoClicker = true;
             }
         };
 
