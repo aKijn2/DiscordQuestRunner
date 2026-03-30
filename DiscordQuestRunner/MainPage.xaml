@@ -23,7 +23,7 @@
                     <BoxView
                         BackgroundColor="{StaticResource Primary}"
                         CornerRadius="2"
-                        HeightRequest="20"
+                        HeightRequest="22"
                         WidthRequest="4"
                         VerticalOptions="Center" />
                     <Label
@@ -158,7 +158,7 @@
                         </Border.StrokeShape>
                         <ActivityIndicator
                             x:Name="LoadingIndicator"
-                            HeightRequest="20"
+                            HeightRequest="22"
                             HorizontalOptions="Center"
                             IsRunning="False"
                             IsVisible="False"
