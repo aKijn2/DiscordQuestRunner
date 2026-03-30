@@ -28,7 +28,7 @@
                         VerticalOptions="Center" />
                     <Label
                         FontAttributes="Bold"
-                        FontSize="10"
+                        FontSize="11"
                         CharacterSpacing="4"
                         Text="NEXUS :: DISCORD"
                         TextColor="{StaticResource PrimaryDark}"
