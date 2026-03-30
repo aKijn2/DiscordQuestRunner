@@ -28,7 +28,7 @@
     const originalConsole = window.console;
     const log = (msg, ...args) => { 
         internalLog += msg + " " + args.join(" ") + "\n"; 
-        originalConsole.log("[DQR SCRIPT]", msg, ...args);
+        originalConsole.log("[DQR SCRIPT] " + msg + " " + args.join(" "));
     };
     const console = { log };
     const isCancelled = () => state.cancelled || window[stateKey]?.runId !== runId;
@@ -114,11 +114,12 @@
                             try {
                                 const frames = document.querySelectorAll('iframe');
                                 for (let i = 0; i < frames.length; i++) {
-                                    if (frames[i].src && frames[i].src.includes('hcaptcha.com')) {
+                                    if ((frames[i].src && frames[i].src.includes("hcaptcha")) || (frames[i].title && frames[i].title.toLowerCase().includes("hcaptcha"))) {
                                         const rect = frames[i].getBoundingClientRect();
                                         if (rect.width > 50 && rect.height > 50 && rect.left > 0) {
                                             // The hCaptcha "I am human" checkbox is approximately 35px from the left edge 
                                             // and horizontally centered within the initial small iframe.
+                                            originalConsole.log("[DQR] Found iframe: " + frames[i].src + " width=" + rect.width + " height=" + rect.height);
                                             const cx = Math.round(rect.left + 35);
                                             const cy = Math.round(rect.top + (rect.height / 2));
                                             originalConsole.log(`[DQR] CLICK_CAPTCHA:${cx},${cy}`);
@@ -341,3 +342,5 @@
         }
     }
 })();                                         
+
+
