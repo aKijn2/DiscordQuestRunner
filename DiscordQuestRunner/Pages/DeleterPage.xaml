@@ -114,7 +114,7 @@
                             x:Name="ChannelIdEntry"
                             BackgroundColor="Transparent"
                             FontFamily="Consolas"
-                            FontSize="13"
+                            FontSize="14"
                             HeightRequest="40"
                             Keyboard="Numeric"
                             Placeholder="000000000000000000"
@@ -151,7 +151,7 @@
                             x:Name="UserIdEntry"
                             BackgroundColor="Transparent"
                             FontFamily="Consolas"
-                            FontSize="13"
+                            FontSize="14"
                             HeightRequest="40"
                             Keyboard="Numeric"
                             Placeholder="000000000000000000"
@@ -331,7 +331,7 @@
                     <Label
                         x:Name="StatusLbl"
                         FontFamily="Consolas"
-                        FontSize="13"
+                        FontSize="14"
                         LineHeight="1.7"
                         Text="> AWAITING DEPLOYMENT PARAMETERS..."
                         TextColor="{StaticResource Secondary}" />
@@ -396,7 +396,7 @@
                 Clicked="OnAbortClicked"
                 CornerRadius="10"
                 FontAttributes="Bold"
-                FontSize="13"
+                FontSize="14"
                 HeightRequest="48"
                 IsEnabled="False"
                 Text="ABORT"
@@ -439,7 +439,7 @@
                             x:Name="AlertTitleLbl"
                             CharacterSpacing="1"
                             FontAttributes="Bold"
-                            FontSize="13"
+                            FontSize="14"
                             Text="PURGE CONFIRMATION"
                             TextColor="White"
                             VerticalOptions="Center" />
@@ -449,7 +449,7 @@
 
                     <Label
                         x:Name="AlertMessageLbl"
-                        FontSize="13"
+                        FontSize="14"
                         LineHeight="1.5"
                         Text="..."
                         TextColor="{StaticResource Gray200}" />
@@ -467,7 +467,7 @@
                             Clicked="OnAlertCancelClicked"
                             CornerRadius="6"
                             FontAttributes="Bold"
-                            FontSize="13"
+                            FontSize="14"
                             HeightRequest="40"
                             Text="Cancel"
                             TextColor="{StaticResource Gray300}" />
@@ -479,7 +479,7 @@
                             Clicked="OnAlertConfirmClicked"
                             CornerRadius="6"
                             FontAttributes="Bold"
-                            FontSize="13"
+                            FontSize="14"
                             HeightRequest="40"
                             Text="Confirm Purge"
                             TextColor="White" />
