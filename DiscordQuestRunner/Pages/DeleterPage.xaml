@@ -308,7 +308,7 @@
                         FontAttributes="Bold"
                         FontSize="11"
                         CharacterSpacing="1"
-                        HeightRequest="26"
+                        HeightRequest="28"
                         Text="SAVE"
                         TextColor="{StaticResource Primary}" />
                 </Grid>
