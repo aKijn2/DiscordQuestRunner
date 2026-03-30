@@ -23,8 +23,8 @@
                     <BoxView
                         BackgroundColor="{StaticResource Primary}"
                         CornerRadius="2"
-                        HeightRequest="18"
-                        WidthRequest="3"
+                        HeightRequest="20"
+                        WidthRequest="4"
                         VerticalOptions="Center" />
                     <Label
                         FontAttributes="Bold"
