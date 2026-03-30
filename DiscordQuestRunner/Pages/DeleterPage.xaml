@@ -7,7 +7,7 @@
     NavigationPage.HasNavigationBar="False">
 
     <Grid
-        Padding="18,16,18,18"
+        Padding="20,16,20,20"
         RowDefinitions="Auto, Auto, Auto, *, Auto"
         RowSpacing="16">
 
