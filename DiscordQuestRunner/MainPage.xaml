@@ -7,7 +7,7 @@
 
     <!-- Root container -->
     <Grid
-        Padding="18,16,18,18"
+        Padding="24,20,24,20"
         RowDefinitions="Auto, Auto, *, Auto"
         RowSpacing="14">
 
