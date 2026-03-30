@@ -331,7 +331,7 @@
                     <Label
                         x:Name="StatusLbl"
                         FontFamily="Consolas"
-                        FontSize="12"
+                        FontSize="13"
                         LineHeight="1.8"
                         Text="> AWAITING DEPLOYMENT PARAMETERS..."
                         TextColor="{StaticResource Secondary}" />
@@ -396,7 +396,7 @@
                 Clicked="OnAbortClicked"
                 CornerRadius="10"
                 FontAttributes="Bold"
-                FontSize="12"
+                FontSize="13"
                 HeightRequest="48"
                 IsEnabled="False"
                 Text="ABORT"
@@ -467,7 +467,7 @@
                             Clicked="OnAlertCancelClicked"
                             CornerRadius="4"
                             FontAttributes="Bold"
-                            FontSize="12"
+                            FontSize="13"
                             HeightRequest="40"
                             Text="Cancel"
                             TextColor="{StaticResource Gray300}" />
@@ -479,7 +479,7 @@
                             Clicked="OnAlertConfirmClicked"
                             CornerRadius="4"
                             FontAttributes="Bold"
-                            FontSize="12"
+                            FontSize="13"
                             HeightRequest="40"
                             Text="Confirm Purge"
                             TextColor="White" />
