@@ -292,7 +292,7 @@
                         CharacterSpacing="1"
                         FontAttributes="Bold"
                         FontSize="10"
-                        Margin="10,0,0,0"
+                        Margin="12,0,0,0"
                         Text="PURGE LOG"
                         TextColor="{StaticResource Gray400}"
                         VerticalOptions="Center" />
