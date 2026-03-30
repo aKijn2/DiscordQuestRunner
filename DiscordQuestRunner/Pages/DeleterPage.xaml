@@ -332,7 +332,7 @@
                         x:Name="StatusLbl"
                         FontFamily="Consolas"
                         FontSize="13"
-                        LineHeight="1.8"
+                        LineHeight="1.7"
                         Text="> AWAITING DEPLOYMENT PARAMETERS..."
                         TextColor="{StaticResource Secondary}" />
                 </ScrollView>
