@@ -51,7 +51,7 @@
                 StrokeThickness="1"
                 VerticalOptions="Center">
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="4" />
+                    <RoundRectangle CornerRadius="6" />
                 </Border.StrokeShape>
                 <HorizontalStackLayout Spacing="7" VerticalOptions="Center">
                     <Ellipse
@@ -92,7 +92,7 @@
                     Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                     StrokeThickness="1">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="4" />
+                        <RoundRectangle CornerRadius="6" />
                     </Border.StrokeShape>
                     <Grid ColumnDefinitions="Auto, *, Auto">
                         <!-- Icon column -->
@@ -231,7 +231,7 @@
                         StrokeThickness="1"
                         VerticalOptions="Center">
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="4" />
+                            <RoundRectangle CornerRadius="6" />
                         </Border.StrokeShape>
                         <Label
                             x:Name="LineCountLbl"
@@ -249,7 +249,7 @@
                         BorderColor="{StaticResource Primary}"
                         BorderWidth="1"
                         Clicked="OnCopyLogClicked"
-                        CornerRadius="4"
+                        CornerRadius="6"
                         FontAttributes="Bold"
                         FontSize="10"
                         CharacterSpacing="2"
@@ -347,7 +347,7 @@
                             BorderColor="{StaticResource Gray600}"
                             BorderWidth="1"
                             Clicked="OnAlertCancelClicked"
-                            CornerRadius="4"
+                            CornerRadius="6"
                             FontAttributes="Bold"
                             FontSize="12"
                             HeightRequest="38"
@@ -359,7 +359,7 @@
                             Grid.Column="1"
                             BackgroundColor="{StaticResource Primary}"
                             Clicked="OnAlertConfirmClicked"
-                            CornerRadius="4"
+                            CornerRadius="6"
                             FontAttributes="Bold"
                             FontSize="12"
                             HeightRequest="38"
