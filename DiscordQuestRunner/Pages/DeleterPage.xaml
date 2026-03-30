@@ -103,7 +103,7 @@
                             VerticalOptions="Center" />
                     </HorizontalStackLayout>
                     <Border
-                        Padding="10,0"
+                        Padding="12,0"
                         BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                         Stroke="{StaticResource PrimaryDark}"
                         StrokeThickness="1">
@@ -140,7 +140,7 @@
                             VerticalOptions="Center" />
                     </HorizontalStackLayout>
                     <Border
-                        Padding="10,0"
+                        Padding="12,0"
                         BackgroundColor="{AppThemeBinding Light={StaticResource EntryBgLight}, Dark={StaticResource EntryBgDark}}"
                         Stroke="{StaticResource PrimaryDark}"
                         StrokeThickness="1">
