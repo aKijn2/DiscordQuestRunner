@@ -171,7 +171,7 @@
             <!-- Found -->
             <Border
                 Grid.Column="0"
-                Padding="12,12"
+                Padding="14,14"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                 StrokeThickness="1">
@@ -201,7 +201,7 @@
             <!-- Deleted -->
             <Border
                 Grid.Column="1"
-                Padding="12,12"
+                Padding="14,14"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 Stroke="#FF5F56"
                 StrokeThickness="1.5">
@@ -231,7 +231,7 @@
             <!-- Progress -->
             <Border
                 Grid.Column="2"
-                Padding="12,12"
+                Padding="14,14"
                 BackgroundColor="{AppThemeBinding Light={StaticResource CardBgLight}, Dark={StaticResource CardBgDark}}"
                 Stroke="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}"
                 StrokeThickness="1">
