@@ -4,7 +4,7 @@ namespace DiscordQuestRunner
 {
     public partial class MainPage : ContentPage
     {
-        // ── State ─────────────────────────────────────────────────────────────
+        // State
         private readonly DiscordService _discordService;
         private bool _isRunning;
         private CancellationTokenSource? _cts;
@@ -24,17 +24,14 @@ namespace DiscordQuestRunner
             "Quest reward claimed",
         ];
 
-        // ── Constructor ───────────────────────────────────────────────────────
+        // Constructor
         public MainPage(DiscordService discordService)
         {
             InitializeComponent();
             _discordService = discordService;
         }
 
-        // ══════════════════════════════════════════════════════════════════════
         //  Custom alert modal
-        // ══════════════════════════════════════════════════════════════════════
-
         private async Task<bool> ShowNexusAlertAsync(
             string title,
             string message,
@@ -71,10 +68,7 @@ namespace DiscordQuestRunner
             _alertTcs?.TrySetResult(false);
         }
 
-        // ══════════════════════════════════════════════════════════════════════
         //  Logging helpers
-        // ══════════════════════════════════════════════════════════════════════
-
         private int _lineCount = 3;
 
         private void Log(string message, string prefix = "") =>
@@ -97,10 +91,7 @@ namespace DiscordQuestRunner
                     LineCountLbl.Text = "1 line";
             });
 
-        // ══════════════════════════════════════════════════════════════════════
         //  Button handlers
-        // ══════════════════════════════════════════════════════════════════════
-
         private async void OnOpenDeleterClicked(object sender, EventArgs e)
         {
 #if WINDOWS
@@ -229,16 +220,9 @@ namespace DiscordQuestRunner
 #endif
         }
 
-        // ══════════════════════════════════════════════════════════════════════
         //  Quest runner retry loop
-        //
         //  Discord's video quest only advances ~14 % per script run because the
         //  JS payload returns after one progress tick. We keep re-injecting on
-        //  a short delay until:
-        //    (a) a terminal phrase appears in the output  → all done
-        //    (b) MAX_RETRIES is reached                  → give up gracefully
-        //    (c) cancellation is requested               → user stopped it
-        // ══════════════════════════════════════════════════════════════════════
 
         private async Task RunQuestLoopAsync(
             string wsUrl,
@@ -297,9 +281,7 @@ namespace DiscordQuestRunner
                 Log($"Max retry limit ({MAX_RETRIES}) reached. Check Discord manually.", "WARN");
         }
 
-        // ══════════════════════════════════════════════════════════════════════
         //  UI state
-        // ══════════════════════════════════════════════════════════════════════
 
         private void SetRunningState(bool running)
         {

@@ -11,11 +11,9 @@
         RowDefinitions="Auto, Auto, Auto, *, Auto"
         RowSpacing="16">
 
-        <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
         <Grid
             Grid.Row="0"
             ColumnDefinitions="Auto, *, Auto">
-            <!-- Title -->
             <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
                 <HorizontalStackLayout Spacing="10">
                     <BoxView
@@ -40,7 +38,6 @@
                     TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
             </VerticalStackLayout>
 
-            <!-- Status badge -->
             <Border
                 Grid.Column="2"
                 Padding="12,6"
@@ -70,7 +67,6 @@
             </Border>
         </Grid>
 
-        <!-- ═══ INPUT PANEL ══════════════════════════════════════════════════ -->
         <Border
             Grid.Row="1"
             Padding="24"
@@ -86,7 +82,6 @@
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
 
-                <!-- Channel ID -->
                 <VerticalStackLayout Grid.Column="0" Spacing="6">
                     <HorizontalStackLayout Spacing="6">
                         <Label
@@ -123,7 +118,6 @@
                     </Border>
                 </VerticalStackLayout>
 
-                <!-- User ID -->
                 <VerticalStackLayout Grid.Column="1" Spacing="6">
                     <HorizontalStackLayout Spacing="6">
                         <Label
@@ -162,13 +156,11 @@
             </Grid>
         </Border>
 
-        <!-- ═══ STATS ROW ════════════════════════════════════════════════════ -->
         <Grid
             Grid.Row="2"
             ColumnDefinitions="*, *, *"
             ColumnSpacing="10">
 
-            <!-- Found -->
             <Border
                 Grid.Column="0"
                 Padding="14,14"
@@ -198,7 +190,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Deleted -->
             <Border
                 Grid.Column="1"
                 Padding="14,14"
@@ -228,7 +219,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Progress -->
             <Border
                 Grid.Column="2"
                 Padding="14,14"
@@ -259,7 +249,6 @@
             </Border>
         </Grid>
 
-        <!-- ═══ PURGE LOG ════════════════════════════════════════════════════ -->
         <Border
             Grid.Row="3"
             BackgroundColor="{StaticResource MidnightBlue}"
@@ -271,7 +260,6 @@
 
             <Grid RowDefinitions="Auto, Auto, *">
 
-                <!-- Toolbar -->
                 <Grid
                     Grid.Row="0"
                     Padding="12,7"
@@ -339,7 +327,6 @@
             </Grid>
         </Border>
 
-        <!-- ═══ ACTION BAR ═══════════════════════════════════════════════════ -->
         <Grid
             Grid.Row="4"
             ColumnDefinitions="Auto, *, Auto"
@@ -404,7 +391,6 @@
                 WidthRequest="80" />
         </Grid>
 
-        <!-- ═══ MODAL OVERLAY ════════════════════════════════════════════════ -->
         <Grid
             x:Name="ModalOverlay"
             Grid.Row="0"

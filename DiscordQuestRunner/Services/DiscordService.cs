@@ -6,8 +6,6 @@ using System.Text.Json.Nodes;
 
 namespace DiscordQuestRunner.Services
 {
-    // â”€â”€â”€ Enums & Models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     public enum LogLevel { Info, Success, Warning, Error, Script }
 
     public record CdpTarget(
@@ -19,8 +17,6 @@ namespace DiscordQuestRunner.Services
 
     public record ScriptResult(bool Success, string? Output, string? Error);
 
-    // â”€â”€â”€ Custom Exceptions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     public sealed class DiscordNotFoundException()
         : Exception("Discord process was not found. Please launch Discord first.");
 
@@ -30,22 +26,17 @@ namespace DiscordQuestRunner.Services
     public sealed class CdpTargetException()
         : Exception("No valid Discord CDP target found. Ensure Discord is fully loaded.");
 
-    // â”€â”€â”€ Logger Delegate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     /// <summary>
     /// Structured log callback. Provides both raw message and severity.
     /// </summary>
     public delegate void LogHandler(string message, LogLevel level = LogLevel.Info);
 
-    // â”€â”€â”€ DiscordService â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     public sealed class DiscordService : IDisposable
     {
-        // â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private const int DEBUG_PORT = 9222;
         private const string DEBUG_BASE_URL = "http://127.0.0.1:9222";
         private const int RESTART_POLL_SECS = 15;
-        private const int WS_BUFFER_BYTES = 1024 * 32; // 32 KB â€“ handles large Discord payloads
+        private const int WS_BUFFER_BYTES = 1024 * 32; // 32 KB € handles large Discord payloads
         private const int SCRIPT_COMMAND_ID = 100;
 
         // Telemetry strings we silently drop from Discord's console output
@@ -56,7 +47,6 @@ namespace DiscordQuestRunner.Services
             "[Notification]", "GatewaySocket",
         ];
 
-        // â”€â”€ HTTP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         private static readonly HttpClient _http = new()
         {
             Timeout = TimeSpan.FromSeconds(4),
@@ -64,9 +54,7 @@ namespace DiscordQuestRunner.Services
 
         private bool _disposed;
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  Script loading
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
         /// <summary>Loads a bundled script from Resources/Raw/Scripts/.</summary>
         public static async Task<string> LoadScriptAsync(string fileName)
@@ -83,9 +71,7 @@ namespace DiscordQuestRunner.Services
             return $"console.log('[DQR] Loaded script asset: {fileName}');\n{script}";
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  Debug-port health check
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
         /// <summary>
         /// Returns whether Discord is running and the CDP debug port is reachable.
@@ -113,16 +99,16 @@ namespace DiscordQuestRunner.Services
             }
         }
 
-        /// <summary>Convenience wrapper â€“ returns a simple bool instead of throwing.</summary>
+        /// <summary>
+        /// Convenience wrapper € returns a simple bool instead of throwing.
+        /// </summary>
         public async Task<bool> IsHealthyAsync()
         {
             try { await CheckHealthAsync(); return true; }
             catch { return false; }
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  Discord restart
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
         /// <summary>
         /// Kills Discord and relaunches it with <c>--remote-debugging-port</c> set.
@@ -185,9 +171,7 @@ namespace DiscordQuestRunner.Services
             return exePath;
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  CDP target discovery
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
         /// <summary>
         /// Resolves the best Discord CDP page target and returns its WebSocket URL.
@@ -235,9 +219,7 @@ namespace DiscordQuestRunner.Services
             return (target, $"Attached to target: {target.Title}");
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  Script execution via CDP WebSocket
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
         /// <summary>
         /// Opens a CDP WebSocket connection, injects <paramref name="script"/>,
@@ -287,7 +269,7 @@ namespace DiscordQuestRunner.Services
                 string? method = root["method"]?.ToString();
                 int? id = root["id"]?.GetValue<int>();
 
-                // â”€â”€ Console log events â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // Console log events
                 if (method == "Runtime.consoleAPICalled")
                 {
                     var argsNode = root["params"]?["args"] as JsonArray;
@@ -353,8 +335,7 @@ if (argsNode != null)
                     continue;
                 }
 
-
-                // â”€â”€ Final script result â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // Final script result
                 if (id == SCRIPT_COMMAND_ID)
                 {
                     scriptOutput = root["result"]?["result"]?["value"]?.ToString();
@@ -378,9 +359,7 @@ if (argsNode != null)
             );
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  WebSocket helpers
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
         /// <summary>Reads a complete (potentially multi-chunk) WebSocket frame.</summary>
         private static async Task<string> ReceiveFullFrameAsync(
@@ -428,17 +407,11 @@ if (argsNode != null)
             }
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  Noise filter
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
         private static bool IsNoise(string message) =>
             _noiseFilters.Any(f => message.Contains(f, StringComparison.OrdinalIgnoreCase));
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  IDisposable
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
         public void Dispose()
         {
             if (_disposed) return;
@@ -446,12 +419,9 @@ if (argsNode != null)
             // HttpClient is static/shared â€“ do not dispose here.
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
         //  Backward-compatibility shims
         //  These keep existing code-behind files compiling without changes.
         //  New code should call the primary methods above directly.
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
         /// <inheritdoc cref="LoadScriptWithBannerAsync"/>
         public static Task<string> LoadScriptWithDebugBannerAsync(string fileName)
             => LoadScriptWithBannerAsync(fileName);
@@ -536,7 +506,7 @@ if (argsNode != null)
             }
         }
 
-        // â”€â”€ Private DTO for JSON deserialisation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Private DTO for JSON deserialisation
         private sealed class RawCdpPage
         {
             public string? webSocketDebuggerUrl { get; set; }

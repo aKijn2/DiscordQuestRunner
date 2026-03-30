@@ -22,9 +22,7 @@ namespace DiscordQuestRunner.Pages
     });
         }
 
-        // ==========================================
         // CUSTOM ALERT SYSTEM
-        // ==========================================
         private async Task<bool> ShowNexusAlertAsync(
             string title,
             string message,
@@ -69,8 +67,6 @@ namespace DiscordQuestRunner.Pages
             ModalOverlay.IsVisible = false;
             _alertTcs?.TrySetResult(false);
         }
-
-        // ==========================================
 
         /// <summary>
         /// Validates that a string is a valid Discord snowflake ID (17-20 digit number).
