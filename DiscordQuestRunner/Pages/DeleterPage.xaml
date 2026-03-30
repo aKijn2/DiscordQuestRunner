@@ -28,7 +28,7 @@
                         CharacterSpacing="4"
                         FontAttributes="Bold"
                         FontSize="10"
-                        Text="NEXUS // PURGE"
+                        Text="NEXUS :: PURGE"
                         TextColor="#FF5F56"
                         VerticalOptions="Center" />
                 </HorizontalStackLayout>
