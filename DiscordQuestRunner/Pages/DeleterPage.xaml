@@ -425,7 +425,7 @@
                     <RoundRectangle CornerRadius="8" />
                 </Border.StrokeShape>
 
-                <VerticalStackLayout Spacing="14">
+                <VerticalStackLayout Spacing="16">
 
                     <!-- Modal header -->
                     <HorizontalStackLayout Spacing="10">
