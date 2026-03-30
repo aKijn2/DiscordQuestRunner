@@ -318,7 +318,7 @@
                     x:Name="PurgeProgress"
                     Grid.Row="1"
                     BackgroundColor="#1A1A22"
-                    HeightRequest="3"
+                    HeightRequest="4"
                     IsVisible="False"
                     Progress="0"
                     ProgressColor="{StaticResource Primary}" />
