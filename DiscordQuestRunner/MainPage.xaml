@@ -113,7 +113,7 @@
                                 Text="AUTO-ACCEPT QUESTS"
                                 TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
                             <Label
-                                FontSize="10"
+                                FontSize="11"
                                 Text="Enrolls in all valid visible quests automatically"
                                 TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
                         </VerticalStackLayout>
