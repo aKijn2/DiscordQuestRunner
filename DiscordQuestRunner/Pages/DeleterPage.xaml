@@ -327,7 +327,7 @@
                 <ScrollView
                     x:Name="LogScroll"
                     Grid.Row="2"
-                    Padding="14,12">
+                    Padding="16,14">
                     <Label
                         x:Name="StatusLbl"
                         FontFamily="Consolas"
