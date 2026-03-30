@@ -179,7 +179,7 @@
                     FontAttributes="Bold"
                     FontSize="11"
                     HeightRequest="38"
-                    Text="?  MESSAGE PURGE"
+                    Text="MESSAGE PURGE"
                     TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
             </VerticalStackLayout>
         </Border>
