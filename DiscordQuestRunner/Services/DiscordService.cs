@@ -294,6 +294,18 @@ if (argsNode != null)
                             ? m.Substring(scriptPrefix.Length).Trim()
                             : m;
 
+                        if (rawPayload == "[DQR] RESTORE_WINDOW")
+                        {
+                            var processes = Process.GetProcessesByName("Discord");
+                            var mainProcess = processes.FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
+                            if (mainProcess != null)
+                            {
+                                log("Discord logic minimized. Restoring window to perform UI click...", LogLevel.Warning);
+                                WindowHelper.FocusWindow(mainProcess.MainWindowHandle);
+                            }
+                            continue;
+                        }
+
                         if (rawPayload.StartsWith("[DQR] CLICK_CAPTCHA:"))
                         {
                             try

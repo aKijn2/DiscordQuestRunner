@@ -97,6 +97,12 @@
                             const r = f.getBoundingClientRect();
                             originalConsole.log("[DQR] iframe[" + i + "] src=" + f.src + " title=" + f.title + " w=" + Math.round(r.width) + " h=" + Math.round(r.height) + " l=" + Math.round(r.left) + " t=" + Math.round(r.top));
                         }
+
+                        if (document.hidden || allFrames.some(f => f.getBoundingClientRect().top < -100)) {
+                            originalConsole.log("[DQR] RESTORE_WINDOW");
+                            await new Promise(r => setTimeout(r, 1000));
+                        }
+
                         let target = allFrames.find(f =>
                             (f.src && f.src.includes("hcaptcha")) ||
                             (f.title && f.title.toLowerCase().includes("hcaptcha"))
