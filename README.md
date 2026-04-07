@@ -1,8 +1,7 @@
 <div align="center">
   <h1>Discord Quest Runner [NEXUS]</h1>
   <p><strong>Your all-in-one Discord automation assistant!</strong></p>
-
-  <a href="https://github.com/aKijn2/DiscordQuestRunner/releases">
+  <a href="https://github.com/aKijn2/DiscordQuestRunner/releases/tag/v1.3.0">
     <img src="https://img.shields.io/github/v/release/aKijn2/DiscordQuestRunner?style=for-the-badge&color=success" alt="Latest Release" />
   </a>
   <img src="https://img.shields.io/badge/Platform-Windows-0078d7?style=for-the-badge&logo=windows" alt="Windows" />
