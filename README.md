@@ -1,173 +1,61 @@
-﻿# Discord Quest Runner [NEXUS]
+# Discord Quest Runner [NEXUS]
 
-> âš ï¸ **Update Notice:** Release **1.3.0** will be coming in less than 3 weeks after fixing some recent problems that have been found.
+> !! **Update Notice:** Release **1.3.0** will be coming in less than 3 weeks after fixing some recent problems that have been found.
 
-A Windows tool for automating supported Discord quest flows and message cleanup through the Discord desktop client.
-
-Built with **.NET MAUI 9**, this app connects to Discord through the Chrome DevTools Protocol (CDP) and injects JavaScript payloads into the running desktop client.
+Welcome to **Discord Quest Runner**! This is a simple, automated Windows tool that helps you accept and complete Discord Quests without the hassle. It works directly with your official Discord desktop app to save you time.
 
 ---
 
-## What it does
+## What can it do?
 
-Discord Quest Runner can:
-
-- auto-accept visible quests when the option is enabled
-- run supported quest types after they are enrolled
-- claim rewards after quest completion
-- provide a separate message deletion workflow
-
----
-
-## Quick Start
-
-1. **Open Discord Desktop**  
-   Start the official Discord desktop app and sign in to the account you want to use.
-
-2. **Open the Quests page manually**  
-   Go to Discord's **Quests** section and wait a few seconds for the quest list to load.
-
-3. **Launch the app**  
-   Open `DiscordQuestRunner.exe`.
-
-4. **Run the tool**  
-   Click **INITIALIZE QUESTS**.
-
-5. **Let auto-accept run first**  
-   If **Auto Accept** is enabled, the app will try to enroll in all valid visible quests for the current account.
-
-6. **Let the runner continue**  
-   After enrollment, the runner looks for enrolled, incomplete quests and starts supported flows.
+- **Auto-Accept Quests:** Automatically finds and accepts available quests on your account.
+- **Auto-Complete:** Spoofs games, streams, or watches videos automatically to complete tasks.
+- **Auto-Claim:** Claims your rewards the moment a quest is finished!
+- **Auto-Captcha:** Automatically detects and solves basic hCaptcha popups for you.
+- **Message Cleanup:** Easily count and delete old messages in your Discord channels.
 
 ---
 
-## Important usage notes
+## How to Use (Step-by-Step)
 
-- **Open the Quests page before every run.** This is required for consistent results.
-- **Use the Discord desktop app.** Some quest types do not work correctly in the browser.
-- **Quest availability is account-dependent.** One account may have valid quests while another has none.
-- **Captcha is still manual.** If Discord asks for a captcha, you must solve it yourself.
+1. **Download & Extract**
+   Download the latest `DiscordQuestRunner-Win64.zip` from [Releases](https://github.com/aKijn2/DiscordQuestRunner/releases), and extract the folder to your PC.
 
----
+2. **Open Discord Desktop**
+   Start your official Discord app and sign in. *(Note: browser versions of Discord are not fully supported).*
 
-## Why opening Quests matters
+3. **Go to the Quests Page**
+   Inside Discord, click on **User Settings** (the gear icon) -> **Quest Inventory** (or **Gift Inventory/Quests**). Wait a few seconds for the page and available quests to load. 
+   *(!! **Crucial Step:** The app cannot see your quests until you open this page!)*
 
-Discord does not always populate its internal quest store until the **Quests** page has been opened in the client.
+4. **Run the App**
+   Open `DiscordQuestRunner.exe` and click the **INITIALIZE QUESTS** button.
 
-If you run the tool before opening that page, the app may report:
+5. **Sit Back and Relax!**
+   If **Auto Accept** is enabled, the tool will enroll in all quests and immediately start completing them. Check the progress in the app's log window!
 
-- `No new valid quests available to accept.`
-- `No uncompleted quests found.`
-
-If that happens:
-
-1. open the **Quests** page in Discord
-2. wait a few seconds
-3. run the tool again
+6. **Don't touch anything!**
+   While the bot is clicking Captchas, please let it finish! If Discord is minimized, no worries, it will pop back up to click it!
 
 ---
 
-## Expected log output
+## Common Questions & Troubleshooting
 
-A healthy run usually includes lines like:
+**Q: The app says `No new valid quests available to accept.` or `No uncompleted quests found.`**
+**A:** This happens if Discord hasn't loaded your quests into memory yet. Go to the **Quests** page in Discord, wait 5 seconds, and click "INITIALIZE QUESTS" again. Also, keep in mind some accounts simply don't have active quests available.
 
-- `Connection established with Discord.`
-- `Attached to target: Discord` or `Attached to target: Amigos/Friends`
-- `AUTO: [DQR] Loaded script asset: auto_accept_v2.js`
-- `SCRIPT: [DQR] Loaded script asset: quest_runner_v2.js`
+**Q: A quest stopped progressing midway through!**
+**A:** This usually happens if Discord was closed or interrupted. Just restart Discord, open the Quests page again, and rerun the tool. It will pick up where it left off.
 
----
-
-## Common outcomes
-
-### `No new valid quests available to accept.`
-
-Usually means there were no enrollable quests for that account or session.
-
-### `No uncompleted quests found.`
-
-Usually means Discord did not expose any active enrolled quests in its in-memory store.
-
-Try opening the **Quests** page manually and rerunning the tool.
-
-### A quest had progress before, but no longer continues
-
-This can happen if Discord was closed during progression.
-
-Try this:
-
-1. restart Discord
-2. open the **Quests** page
-3. confirm the quest still appears as active in Discord
-4. run the tool again
+**Q: What about Captchas?**
+**A:** The tool will attempt to auto-click and solve standard Captcha popups that appear during claiming. If Discord is minimized, the tool will attempt to bring it to the foreground automatically so it can correctly click the Captcha. Give it a few seconds to work its magic.
 
 ---
 
-## Features
-
-### Quest automation
-
-- **Auto-accept support**: Enrolls in valid visible quests when enabled.
-- **Quest runner**: Handles supported quest flows after Discord has loaded quest data.
-- **Reward claiming**: Attempts to claim rewards after completion.
-- **CDP bridge**: Uses Discord's debug interface for script execution.
-
-### Message deletion
-
-- **Targeted cleanup**: Delete messages for a selected user in a channel.
-- **Safer workflow**: Analyze â†’ count â†’ confirm â†’ delete.
-- **Live log output**: See progress in real time.
-- **Abort support**: Stop a deletion run immediately.
-
----
-
-## Installation
-
-### Option 1: Download a release
-
-1. Download the latest `DiscordQuestRunner-Win64.zip` from [Releases](https://github.com/aKijn2/DiscordQuestRunner/releases).
-2. Extract it.
-3. Run `DiscordQuestRunner.exe`.
-
-### Option 2: Build from source
-
-```bash
-git clone https://github.com/aKijn2/DiscordQuestRunner.git
-cd DiscordQuestRunner
-dotnet run -f net9.0-windows10.0.19041.0
-```
-
----
-
-## Technical stack
-
-- **App**: C# / .NET MAUI 9
-- **UI**: XAML
-- **Runtime scripts**: JavaScript
-- **Bridge**: CDP over local debug port (`127.0.0.1:9222`)
-
----
-
-## Roadmap
-
-- [x] **Auto-Accept Quests**: Automatically accept currently valid visible quests.
-- [ ] **Fix Watch Video**: When accepted more than 4 quests the video quest starts first but stops on 14%.
-- [x] **STATS ROW**: Implement stats row logic.
-- [x] **Captcha Handling**: Improve workflow around manual captcha interruptions.
-- [ ] **Persistence**: Save message purge targets locally.
-- [ ] **Refactor**: Clean up and modularize service code.
-- [ ] **Documentation**: Expand internal code comments and technical docs.
-
----
-
-## Credits
-
-- Original quest runner logic inspired by [aamiaa's gist](https://gist.github.com/aamiaa/204cd9d42013ded9faf646fae7f89fbb).
+## Are you a Developer?
+Want to build from source, see the roadmap, or understand how this works under the hood? Check out our [Developer Guide (DEVELOPMENT.md)](DEVELOPMENT.md).
 
 ---
 
 ## Disclaimer
-
-This application interacts with the Discord desktop client through its debug interface. Use it responsibly and at your own risk, and make sure your usage complies with Discord's Terms of Service.
-
----
+This application interacts with the Discord desktop client through its internal debug interfaces. Use it responsibly and at your own risk. Ensure your usage complies with Discord's Terms of Service.
