@@ -178,7 +178,7 @@
 
                 const quest = quests.pop();
                 if(!quest) {
-                    log("All jobs done.");
+                    log("All jobs done. Sequence complete.");
                     return internalLog;
                 }
 
@@ -208,26 +208,35 @@
                         const diff = maxAllowed - secondsDone;
                         const timestamp = secondsDone + speed;
                         if(diff >= speed) {
-                            const res = await api.post({url: `/quests/${quest.id}/video-progress`, body: {timestamp: Math.min(secondsNeeded, timestamp + Math.random())}});
-                            completed = res.body.completed_at != null;
-                            secondsDone = Math.min(secondsNeeded, timestamp);
+                            try {
+                                const res = await api.post({url: `/quests/${quest.id}/video-progress`, body: {timestamp: Math.min(secondsNeeded, timestamp + Math.random())}});
+                                completed = res.body.completed_at != null;
+                                secondsDone = Math.min(secondsNeeded, timestamp);
+                            } catch (err) {
+                                log(`[ERROR] Video progress failed: ${getErrorDetails(err)}. Retrying...`);
+                                await new Promise(resolve => setTimeout(resolve, 5000)); // sleep a bit longer on error
+                            }
                         }
                         
-                        if(timestamp >= secondsNeeded) break;
+                        if(secondsDone >= secondsNeeded) break;
                         await new Promise(resolve => setTimeout(resolve, interval * 1000));
                     }
                     if(!completed) {
-                        await api.post({url: `/quests/${quest.id}/video-progress`, body: {timestamp: secondsNeeded}});
+                        try {
+                            await api.post({url: `/quests/${quest.id}/video-progress`, body: {timestamp: secondsNeeded}});
+                        } catch (err) {
+                            log(`[ERROR] Final video progress failed: ${getErrorDetails(err)}`);
+                        }
                     }
                     log(`Quest completed: ${questName}`);
                     await claimQuest(quest); 
-                    doJob(); 
+                    await doJob(); 
                 } else if(taskName === "PLAY_ON_DESKTOP") {
                     if(!isApp) {
                         log(`This no longer works in browser for non-video quests. Use the discord desktop app!`);
-                        doJob();
+                        await doJob();
                     } else {
-                        api.get({url: `/applications/public?application_ids=${applicationId}`}).then(res => {
+                        await api.get({url: `/applications/public?application_ids=${applicationId}`}).then(async res => {
                             const appData = res.body[0];
                             const exeName = appData.executables.find(x => x.os === "win32").name.replace(">","");
                             
@@ -252,6 +261,7 @@
                             RunningGameStore.getGameForPID = (pid) => fakeGames.find(x => x.pid === pid);
                             FluxDispatcher.dispatch({type: "RUNNING_GAMES_CHANGE", removed: realGames, added: [fakeGame], games: fakeGames});
                             
+                            await new Promise(resolve => {
                             let fn = data => {
                                 let progress = quest.config.configVersion === 1 ? data.userStatus.streamProgressSeconds : Math.floor(data.userStatus.progress.PLAY_ON_DESKTOP.value);
                                 log(`Quest progress: ${progress}/${secondsNeeded}`);
@@ -262,20 +272,22 @@
                                     RunningGameStore.getGameForPID = realGetGameForPID;
                                     FluxDispatcher.dispatch({type: "RUNNING_GAMES_CHANGE", removed: [fakeGame], added: [], games: []});
                                     FluxDispatcher.unsubscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                                    claimQuest(quest).then(() => doJob());
+                                    claimQuest(quest).then(() => { log("Claimed desktop quest."); resolve(); });
                                 }
                             };
                             FluxDispatcher.subscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
                             log(`Spoofed your game to ${applicationName}. Wait for ${Math.ceil((secondsNeeded - secondsDone) / 60)} more minutes.`);
-                        }).catch(error => {
+                        });
+                        await doJob();
+                        }).catch(async error => {
                             log(`Failed to load application data for ${questName}: ${getErrorDetails(error)}`);
-                            doJob();
+                            await doJob();
                         });
                     }
                 } else if(taskName === "STREAM_ON_DESKTOP") {
                     if(!isApp) {
                         log(`This no longer works in browser. Use desktop app!`);
-                        doJob();
+                        await doJob();
                     } else {
                         let realFunc = ApplicationStreamingStore.getStreamerActiveStreamMetadata;
                         ApplicationStreamingStore.getStreamerActiveStreamMetadata = () => ({
@@ -284,6 +296,7 @@
                             sourceName: null
                         });
                         
+                        await new Promise(resolve => {
                         let fn = data => {
                             let progress = quest.config.configVersion === 1 ? data.userStatus.streamProgressSeconds : Math.floor(data.userStatus.progress.STREAM_ON_DESKTOP.value);
                             log(`Quest progress: ${progress}/${secondsNeeded}`);
@@ -291,11 +304,13 @@
                                 log("Quest completed!");
                                 ApplicationStreamingStore.getStreamerActiveStreamMetadata = realFunc;
                                 FluxDispatcher.unsubscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
-                                claimQuest(quest).then(() => doJob());
+                                claimQuest(quest).then(() => { log("Claimed stream quest."); resolve(); });
                             }
                         };
                         FluxDispatcher.subscribe("QUESTS_SEND_HEARTBEAT_SUCCESS", fn);
                         log(`Spoofed stream. Stream in vc for ${Math.ceil((secondsNeeded - secondsDone) / 60)} mins.`);
+                        });
+                        await doJob();
                     }
                 } else if(taskName === "PLAY_ACTIVITY") {
                     const channelId = ChannelStore.getSortedPrivateChannels()[0]?.id ?? Object.values(GuildChannelStore.getAllGuilds()).find(x => x != null && x.VOCAL.length > 0).VOCAL[0].channel.id;
@@ -323,15 +338,15 @@
                         } catch (error) {
                             log(`Activity quest failed for ${questName}: ${getErrorDetails(error)}`);
                         }
-                        doJob();
+                        await doJob();
                     };
-                    fn();
+                    await fn();
                 } else {
                    log(`Unknown task type: ${taskName}`);
-                   doJob();
+                   await doJob();
                 }
             };
-            doJob();
+            await doJob();
         }
 
         await new Promise(r => setTimeout(r, 2000));

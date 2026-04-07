@@ -22,6 +22,7 @@ namespace DiscordQuestRunner
             "No new valid quests",
             "All quests completed",
             "Quest reward claimed",
+            "All jobs done",
         ];
 
         // Constructor
@@ -240,7 +241,7 @@ namespace DiscordQuestRunner
                 // Collect all output lines produced during this execution
                 var outputLines = new List<string>();
 
-                await _discordService.ExecuteScriptAsync(
+                var scriptResult = await _discordService.ExecuteScriptAsync(
                     wsUrl,
                     script,
                     msg =>
@@ -250,10 +251,10 @@ namespace DiscordQuestRunner
                     },
                     ct);
 
-                // Check whether any terminal phrase was reported
-                allComplete = outputLines.Any(line =>
-                    _terminalPhrases.Any(phrase =>
-                        line.Contains(phrase, StringComparison.OrdinalIgnoreCase)));
+                // Use the returned scriptOutput instead of all console messages to avoid false positives 
+                // from DevTools replaying old console logs.
+                allComplete = _terminalPhrases.Any(phrase =>
+                    scriptResult.Output?.Contains(phrase, StringComparison.OrdinalIgnoreCase) == true);
 
                 if (allComplete)
                 {
