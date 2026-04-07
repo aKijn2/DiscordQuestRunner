@@ -1,6 +1,6 @@
 # Discord Quest Runner [NEXUS]
 
-> !! **Update Notice:** Release **1.3.0** will be coming in less than 3 weeks after fixing some recent problems that have been found.
+> **Release 1.3.0 is out!** Includes major bug fixes for the "Watch Video" quests freezing and improves Auto-Captcha clicking even when Discord is minimized.
 
 Welcome to **Discord Quest Runner**! This is a simple, automated Windows tool that helps you accept and complete Discord Quests without the hassle. It works directly with your official Discord desktop app to save you time.
 
