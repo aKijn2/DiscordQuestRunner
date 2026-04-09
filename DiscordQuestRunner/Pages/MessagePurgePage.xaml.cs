@@ -257,55 +257,10 @@ namespace DiscordQuestRunner.Pages
         private async Task<(string wsUrl, string message)?> TryInitializeConnectionAsync(
             CancellationToken cancellationToken)
         {
-            Log("Running preflight environment check...");
-
-            var preflight = await RunPreflightWithRecoveryAsync(
-                DiscordAutomationCapability.RestApi,
-                cancellationToken);
-
-            if (preflight is null || string.IsNullOrWhiteSpace(preflight.WebSocketDebuggerUrl))
+            var portCheck = await _discordService.CheckDebugPortAsync();
+            if (!portCheck.isReady)
             {
-                return null;
-            }
-
-            Log("Preflight complete. Startup conditions verified.");
-            return (preflight.WebSocketDebuggerUrl, "Preflight complete.");
-        }
-
-        /// <summary>
-        /// Runs the shared preflight checks and optionally restarts Discord when only the debug port is missing.
-        /// </summary>
-        /// <param name="requiredCapabilities">Automation capabilities required by the workflow.</param>
-        /// <param name="cancellationToken">Token that cancels the preflight or restart path.</param>
-        /// <returns>
-        /// A successful preflight report when startup conditions are satisfied; otherwise, <see langword="null"/>.
-        /// </returns>
-        /// <exception cref="OperationCanceledException">
-        /// Thrown when <paramref name="cancellationToken"/> is cancelled during the restart path.
-        /// </exception>
-        private async Task<DiscordPreflightReport?> RunPreflightWithRecoveryAsync(
-            DiscordAutomationCapability requiredCapabilities,
-            CancellationToken cancellationToken)
-        {
-            var preflight = await _discordService.RunPreflightAsync(requiredCapabilities, cancellationToken);
-            LogPreflightReport(preflight);
-
-            if (preflight.Success)
-            {
-                return preflight;
-            }
-
-            if (!preflight.ProcessFound)
-            {
-                await ShowNexusAlertAsync(
-                    "DISCORD NOT FOUND",
-                    preflight.FailureMessage,
-                    "CLOSE");
-                return null;
-            }
-
-            if (!preflight.DebugPortReady)
-            {
+                Log($"[WARN] {portCheck.message}");
                 var restart = await ShowNexusAlertAsync(
                     "RESTART REQUIRED",
                     "Discord must be restarted with debug mode enabled. Proceed?",
@@ -325,51 +280,27 @@ namespace DiscordQuestRunner.Pages
                 if (!restartResult.success)
                 {
                     Log($"[FATAL] {restartResult.message}");
-                    await ShowNexusAlertAsync("RESTART FAILED", restartResult.message, "CLOSE");
                     return null;
                 }
 
                 Log(restartResult.message);
-                preflight = await _discordService.RunPreflightAsync(requiredCapabilities, cancellationToken);
-                LogPreflightReport(preflight);
-
-                if (preflight.Success)
-                {
-                    return preflight;
-                }
+            }
+            else
+            {
+                Log("Debug port accessible.");
             }
 
-            await ShowNexusAlertAsync("PREFLIGHT FAILED", preflight.FailureMessage, "CLOSE");
-            return null;
-        }
-
-        /// <summary>
-        /// Writes the preflight stage results to the purge log in execution order.
-        /// </summary>
-        /// <param name="report">Report emitted by the shared preflight service.</param>
-        private void LogPreflightReport(DiscordPreflightReport report)
-        {
-            foreach (var step in report.Steps)
+            Log("Acquiring WebSocket connection...");
+            var connection = await _discordService.InitConnectionAsync();
+            if (!connection.success)
             {
-                var level = step.Success ? "[CHK]" : "[WARN]";
-                Log($"{level} {FormatPreflightStage(step.Stage)}: {step.Message}");
+                Log($"[ERROR] {connection.message}");
+                return null;
             }
-        }
 
-        /// <summary>
-        /// Formats a preflight stage into a short purge-log label.
-        /// </summary>
-        /// <param name="stage">Stage being written to the purge log.</param>
-        /// <returns>A compact label for the stage.</returns>
-        private static string FormatPreflightStage(DiscordPreflightStage stage) =>
-            stage switch
-            {
-                DiscordPreflightStage.Process => "PROCESS",
-                DiscordPreflightStage.DebugPort => "DEBUG PORT",
-                DiscordPreflightStage.Target => "TARGET",
-                DiscordPreflightStage.AutomationSurface => "AUTOMATION",
-                _ => "PREFLIGHT",
-            };
+            Log(connection.message);
+            return (connection.wsUrl, connection.message);
+        }
 
         /// <summary>
         /// Executes the count script and extracts the message total from the emitted log markers.

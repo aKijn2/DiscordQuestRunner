@@ -26,11 +26,6 @@ namespace DiscordQuestRunner.Services
         public const string DeleteMessages = "delete_messages.js";
 
         /// <summary>
-        /// Gets the packaged startup probe script filename.
-        /// </summary>
-        public const string PreflightProbe = "preflight_probe.js";
-
-        /// <summary>
         /// Replaces placeholder tokens in a script template with runtime values.
         /// </summary>
         /// <param name="template">Script template that contains replacement markers.</param>
