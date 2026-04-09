@@ -1,10 +1,17 @@
-﻿using DiscordQuestRunner.Services;
+using DiscordQuestRunner.Services;
 using Microsoft.Extensions.Logging;
 
 namespace DiscordQuestRunner
 {
+    /// <summary>
+    /// Registers application services, fonts, and logging for the MAUI host.
+    /// </summary>
     public static class MauiProgram
     {
+        /// <summary>
+        /// Builds the shared MAUI application container.
+        /// </summary>
+        /// <returns>The configured <see cref="MauiApp"/>.</returns>
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
@@ -16,7 +23,6 @@ namespace DiscordQuestRunner
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            // Services
             builder.Services.AddSingleton<DiscordService>();
             builder.Services.AddTransient<Pages.QuestRunnerPage>();
 

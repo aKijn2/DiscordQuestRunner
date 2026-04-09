@@ -26,12 +26,39 @@
 
     let internalLog = "";
     const originalConsole = window.console;
+
+    /**
+     * Suspends execution between renderer API calls and heartbeat intervals.
+     *
+     * @param {number} ms Delay in milliseconds.
+     * @returns {Promise<void>} Promise resolved after the delay completes.
+     */
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    /**
+     * Records script output locally and forwards it with a stable prefix for the CDP bridge.
+     *
+     * @param {string} message Primary log message.
+     * @param {...any} args Additional values appended to the message.
+     * @returns {void}
+     */
     const log = (message, ...args) => {
         internalLog += `${message} ${args.join(" ")}\n`;
         originalConsole.log(`[DQR SCRIPT] ${message} ${args.join(" ")}`);
     };
+
+    /**
+     * Checks whether this script instance has been superseded or explicitly cancelled.
+     *
+     * @returns {boolean} True when the current run should stop.
+     */
     const isCancelled = () => state.cancelled || window[stateKey]?.runId !== runId;
+
+    /**
+     * Returns the current cancellation reason.
+     *
+     * @returns {string} Reason recorded by the latest cancellation request.
+     */
     const cancelReason = () => state.reason || "superseded";
     const supportedTasks = [
         "WATCH_VIDEO",
@@ -41,11 +68,24 @@
         "WATCH_VIDEO_ON_MOBILE"
     ];
 
+    /**
+     * Resolves a display name for a Discord quest.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @returns {string} Human-readable quest name.
+     */
     const getQuestName = (quest) =>
         quest?.config?.messages?.questName
         || quest?.config?.application?.name
         || quest?.id
         || "Unknown Quest";
+
+    /**
+     * Formats a Discord API or runtime error into a compact diagnostic string.
+     *
+     * @param {any} error Error payload returned by the renderer or REST client.
+     * @returns {string} Structured error description.
+     */
     const getErrorDetails = (error) => {
         if (!error) {
             return "Unknown error";
@@ -57,11 +97,37 @@
         if (error.body) parts.push(`body=${JSON.stringify(error.body)}`);
         return parts.length > 0 ? parts.join(" | ") : String(error);
     };
+    /**
+     * Selects the task configuration version exposed by the current quest record.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @returns {any} Active task configuration object.
+     */
     const getTaskConfig = (quest) => quest.config.taskConfig ?? quest.config.taskConfigV2;
+
+    /**
+     * Selects the first supported task exposed by the current quest configuration.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @returns {string | undefined} Supported task name when one is available.
+     */
     const getTaskName = (quest) => supportedTasks.find((task) => getTaskConfig(quest)?.tasks?.[task] != null);
+
+    /**
+     * Reads the current progress value for a quest task.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @param {string} taskName Supported task identifier.
+     * @returns {number} Integer progress value reported by Discord.
+     */
     const getProgressValue = (quest, taskName) =>
         Math.floor(quest?.userStatus?.progress?.[taskName]?.value ?? 0);
 
+    /**
+     * Emits a cancellation marker once and signals whether the current run should stop.
+     *
+     * @returns {boolean} True when the caller should abort further work.
+     */
     const logCancellationAndExit = () => {
         if (!isCancelled()) {
             return false;
@@ -71,6 +137,16 @@
         return true;
     };
 
+    /**
+     * Resolves the internal stores and API clients needed by the runner.
+     *
+     * The script uses Webpack cache discovery because Discord does not expose a stable public
+     * API for quest stores. The lookup is version-tolerant and prefers capability checks over
+     * fixed module identifiers.
+     *
+     * @returns {object} Collection of internal Discord modules required by the runner.
+     * @throws {Error} Thrown when the Webpack runtime cannot be extracted.
+     */
     const resolveDiscordModules = () => {
         let wpRequire;
         try {
@@ -119,6 +195,17 @@
         };
     };
 
+    /**
+     * Claims a completed quest reward and coordinates captcha assistance when Discord blocks the request.
+     *
+     * The renderer script emits control markers through console output because DOM inspection and CDP
+     * input dispatch happen in different layers. The C# bridge converts those markers into native CDP
+     * mouse events without exposing the transport details to the script.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @param {object} modules Resolved Discord module collection.
+     * @returns {Promise<void>} Promise resolved after the claim path completes.
+     */
     const claimQuest = async (quest, modules) => {
         const { api, QuestsStore } = modules;
         const questName = getQuestName(quest);
@@ -209,6 +296,12 @@
         }
     };
 
+    /**
+     * Claims rewards for quests that are already completed before new execution begins.
+     *
+     * @param {object} modules Resolved Discord module collection.
+     * @returns {Promise<boolean | undefined>} False when the run is cancelled; otherwise, true or undefined.
+     */
     const processPendingClaims = async (modules) => {
         const pendingClaims = [...modules.QuestsStore.quests.values()].filter(
             (quest) => quest.userStatus?.completedAt && !quest.userStatus?.claimedAt
@@ -231,6 +324,15 @@
         return true;
     };
 
+    /**
+     * Advances a video quest by sending synthetic progress heartbeats that respect Discord's timing rules.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @param {object} modules Resolved Discord module collection.
+     * @param {string} taskName Supported task identifier.
+     * @param {number} secondsNeeded Total progress required by the quest.
+     * @returns {Promise<void>} Promise resolved after the quest completes or the run is cancelled.
+     */
     const runVideoQuest = async (quest, modules, taskName, secondsNeeded) => {
         const { api } = modules;
         const maxFuture = 10;
@@ -283,6 +385,14 @@
         await claimQuest(quest, modules);
     };
 
+    /**
+     * Spoofs a desktop game session by patching the running-game store and listening for quest heartbeats.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @param {object} modules Resolved Discord module collection.
+     * @param {number} secondsNeeded Total progress required by the quest.
+     * @returns {Promise<void>} Promise resolved after the quest completes or the script exits early.
+     */
     const runDesktopQuest = async (quest, modules, secondsNeeded) => {
         if (typeof DiscordNative === "undefined") {
             log("This no longer works in browser for non-video quests. Use the discord desktop app!");
@@ -364,6 +474,14 @@
         }
     };
 
+    /**
+     * Spoofs desktop streaming metadata until Discord reports quest completion.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @param {object} modules Resolved Discord module collection.
+     * @param {number} secondsNeeded Total progress required by the quest.
+     * @returns {Promise<void>} Promise resolved after the quest completes or the script exits early.
+     */
     const runStreamQuest = async (quest, modules, secondsNeeded) => {
         if (typeof DiscordNative === "undefined") {
             log("This no longer works in browser. Use desktop app!");
@@ -406,6 +524,14 @@
         });
     };
 
+    /**
+     * Advances an activity quest by sending periodic heartbeat payloads against a selected voice channel.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @param {object} modules Resolved Discord module collection.
+     * @param {number} secondsNeeded Total progress required by the quest.
+     * @returns {Promise<void>} Promise resolved after the quest completes or the run is cancelled.
+     */
     const runActivityQuest = async (quest, modules, secondsNeeded) => {
         const { api, ChannelStore, GuildChannelStore } = modules;
         const channelId = ChannelStore.getSortedPrivateChannels()[0]?.id
@@ -444,6 +570,13 @@
         }
     };
 
+    /**
+     * Dispatches a quest to the task-specific execution path selected from its configuration.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @param {object} modules Resolved Discord module collection.
+     * @returns {Promise<void>} Promise resolved after the quest handler exits.
+     */
     const runQuest = async (quest, modules) => {
         const questName = getQuestName(quest);
         const taskConfig = getTaskConfig(quest);

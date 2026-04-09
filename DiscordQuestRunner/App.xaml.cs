@@ -1,15 +1,27 @@
-﻿namespace DiscordQuestRunner
+namespace DiscordQuestRunner
 {
+    /// <summary>
+    /// Configures the root MAUI window and resolves the startup page from dependency injection.
+    /// </summary>
     public partial class App : Application
     {
         private readonly IServiceProvider _serviceProvider;
 
+        /// <summary>
+        /// Initializes the MAUI application shell.
+        /// </summary>
+        /// <param name="serviceProvider">Service provider used to resolve page dependencies.</param>
         public App(IServiceProvider serviceProvider)
         {
             InitializeComponent();
             _serviceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// Creates the primary application window and centers it on the active display.
+        /// </summary>
+        /// <param name="activationState">Platform-specific activation context.</param>
+        /// <returns>The configured main application window.</returns>
         protected override Window CreateWindow(IActivationState? activationState)
         {
             var mainPage = _serviceProvider.GetRequiredService<Pages.QuestRunnerPage>();
@@ -26,7 +38,6 @@
                 MaximumHeight = 700,
             };
 
-            // Hook into the window creation event to center it
             window.Created += (s, e) =>
             {
                 Application.Current?.Dispatcher.Dispatch(() =>

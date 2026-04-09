@@ -18,14 +18,46 @@
     };
     window[stateKey] = state;
 
+    /**
+     * Suspends execution between quest enrollment requests.
+     *
+     * @param {number} ms Delay in milliseconds.
+     * @returns {Promise<void>} Promise resolved after the delay completes.
+     */
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    /**
+     * Checks whether this script instance has been superseded or explicitly cancelled.
+     *
+     * @returns {boolean} True when the current run should stop.
+     */
     const isCancelled = () => state.cancelled || window[stateKey]?.runId !== runId;
+
+    /**
+     * Returns the current cancellation reason.
+     *
+     * @returns {string} Reason recorded by the latest cancellation request.
+     */
     const cancelReason = () => state.reason || "superseded";
+
+    /**
+     * Resolves a display name for a Discord quest.
+     *
+     * @param {any} quest Raw quest object from Discord's internal store.
+     * @returns {string} Human-readable quest name.
+     */
     const getQuestName = (quest) =>
         quest?.config?.messages?.questName
         || quest?.config?.application?.name
         || quest?.id
         || "Unknown Quest";
+
+    /**
+     * Formats a Discord API or runtime error into a compact diagnostic string.
+     *
+     * @param {any} error Error payload returned by the renderer or REST client.
+     * @returns {string} Structured error description.
+     */
     const getErrorDetails = (error) => {
         if (!error) {
             return "Unknown error";
@@ -38,20 +70,44 @@
         return parts.length > 0 ? parts.join(" | ") : String(error);
     };
 
+    /**
+     * Extracts the internal Webpack runtime so the script can locate Discord stores and API clients.
+     *
+     * @returns {any} Discord's Webpack runtime require function.
+     * @throws {Error} Thrown when the Webpack chunk bootstrap fails.
+     */
     const resolveWebpackRequire = () => {
         const wpRequire = window.webpackChunkdiscord_app.push([[Symbol()], {}, (runtime) => runtime]);
         window.webpackChunkdiscord_app.pop();
         return wpRequire;
     };
 
+    /**
+     * Resolves Discord's internal REST client from the Webpack module cache.
+     *
+     * @param {any} wpRequire Discord's Webpack runtime require function.
+     * @returns {any | undefined} Internal REST client used by the desktop renderer.
+     */
     const resolveApi = (wpRequire) =>
         Object.values(wpRequire.c).find((entry) => entry?.exports?.Bo?.get)?.exports?.Bo
         || Object.values(wpRequire.c).find((entry) => entry?.exports?.tn?.get)?.exports?.tn;
 
+    /**
+     * Resolves the internal quest store from the Webpack module cache.
+     *
+     * @param {any} wpRequire Discord's Webpack runtime require function.
+     * @returns {any | undefined} Internal quest store.
+     */
     const resolveQuestsStore = (wpRequire) =>
         Object.values(wpRequire.c).find((entry) => entry?.exports?.Z?.__proto__?.getQuest)?.exports?.Z
         || Object.values(wpRequire.c).find((entry) => entry?.exports?.A?.__proto__?.getQuest)?.exports?.A;
 
+    /**
+     * Filters quests to the set that are still valid for enrollment.
+     *
+     * @param {any} questsStore Internal quest store.
+     * @returns {any[]} Enrollable quest records.
+     */
     const getEnrollableQuests = (questsStore) =>
         [...questsStore.quests.values()].filter((quest) => {
             const expiresAt = new Date(quest?.config?.expiresAt).getTime();

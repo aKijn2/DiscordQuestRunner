@@ -7,8 +7,44 @@ using System.Text.Json.Nodes;
 
 namespace DiscordQuestRunner.Services
 {
-    public enum LogLevel { Info, Success, Warning, Error, Script }
+    /// <summary>
+    /// Describes the severity of a log entry emitted during Discord automation.
+    /// </summary>
+    public enum LogLevel
+    {
+        /// <summary>
+        /// Indicates a neutral informational event.
+        /// </summary>
+        Info,
 
+        /// <summary>
+        /// Indicates a successful operation.
+        /// </summary>
+        Success,
+
+        /// <summary>
+        /// Indicates a recoverable warning condition.
+        /// </summary>
+        Warning,
+
+        /// <summary>
+        /// Indicates a failure or unrecoverable error.
+        /// </summary>
+        Error,
+
+        /// <summary>
+        /// Indicates output forwarded from the injected JavaScript runtime.
+        /// </summary>
+        Script
+    }
+
+    /// <summary>
+    /// Represents a debuggable Chromium page exposed by Discord's remote debugging endpoint.
+    /// </summary>
+    /// <param name="Title">Visible title reported by the target.</param>
+    /// <param name="Type">CDP target type reported by Chromium.</param>
+    /// <param name="Url">Current page URL.</param>
+    /// <param name="WebSocketDebuggerUrl">WebSocket endpoint used for CDP commands.</param>
     public record CdpTarget(
         string Title,
         string Type,
@@ -16,22 +52,43 @@ namespace DiscordQuestRunner.Services
         string WebSocketDebuggerUrl
     );
 
+    /// <summary>
+    /// Represents the final result of a CDP script evaluation request.
+    /// </summary>
+    /// <param name="Success">Whether the evaluation completed without an exception payload.</param>
+    /// <param name="Output">Returned script value when the script completed successfully.</param>
+    /// <param name="Error">Exception text reported by CDP when evaluation failed.</param>
     public record ScriptResult(bool Success, string? Output, string? Error);
 
+    /// <summary>
+    /// Thrown when no running Discord process can be located.
+    /// </summary>
     public sealed class DiscordNotFoundException()
         : Exception("Discord process was not found. Please launch Discord first.");
 
+    /// <summary>
+    /// Thrown when Discord's remote debugging port cannot be reached.
+    /// </summary>
+    /// <param name="reason">Low-level failure detail reported while probing the port.</param>
     public sealed class DebugPortException(string reason)
         : Exception($"Debug port unavailable: {reason}. Restart Discord with debug mode enabled.");
 
+    /// <summary>
+    /// Thrown when no usable Discord CDP page target can be selected.
+    /// </summary>
     public sealed class CdpTargetException()
         : Exception("No valid Discord CDP target found. Ensure Discord is fully loaded.");
 
     /// <summary>
-    /// Structured log callback. Provides both raw message and severity.
+    /// Receives structured log entries from the service and its injected scripts.
     /// </summary>
+    /// <param name="message">Log text emitted by the service or script runtime.</param>
+    /// <param name="level">Severity associated with the message.</param>
     public delegate void LogHandler(string message, LogLevel level = LogLevel.Info);
 
+    /// <summary>
+    /// Manages Discord process discovery, CDP target selection, script loading, and WebSocket-based script execution.
+    /// </summary>
     public sealed class DiscordService : IDisposable
     {
         private const int DEBUG_PORT = 9222;
@@ -63,7 +120,14 @@ namespace DiscordQuestRunner.Services
 
         //  Script loading
 
-        /// <summary>Loads a bundled script from Resources/Raw/Automation/.</summary>
+        /// <summary>
+        /// Loads a packaged JavaScript asset from the MAUI app bundle and caches the result for reuse.
+        /// </summary>
+        /// <param name="fileName">Asset filename stored under <c>Resources/Raw/Automation</c>.</param>
+        /// <returns>The script content.</returns>
+        /// <exception cref="FileNotFoundException">Thrown when the requested asset is not packaged.</exception>
+        /// <exception cref="DirectoryNotFoundException">Thrown when the automation asset folder cannot be resolved.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the packaged asset stream cannot be opened.</exception>
         public static async Task<string> LoadScriptAsync(string fileName)
         {
             if (_scriptCache.TryGetValue(fileName, out var cachedScript))
@@ -88,13 +152,28 @@ namespace DiscordQuestRunner.Services
             }
         }
 
-        /// <summary>Loads a script and prepends a DQR console banner.</summary>
+        /// <summary>
+        /// Loads a packaged script and prepends a banner so the CDP log stream can identify the active asset.
+        /// </summary>
+        /// <param name="fileName">Asset filename stored under <c>Resources/Raw/Automation</c>.</param>
+        /// <returns>The wrapped script content.</returns>
+        /// <exception cref="FileNotFoundException">Thrown when the requested asset is not packaged.</exception>
+        /// <exception cref="DirectoryNotFoundException">Thrown when the automation asset folder cannot be resolved.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the packaged asset stream cannot be opened.</exception>
         public static async Task<string> LoadScriptWithBannerAsync(string fileName)
         {
             var script = await LoadScriptAsync(fileName);
             return $"console.log('[DQR] Loaded script asset: {fileName}');\n{script}";
         }
 
+        /// <summary>
+        /// Reads a script from the packaged MAUI asset store without consulting the cache.
+        /// </summary>
+        /// <param name="fileName">Asset filename stored under <c>Resources/Raw/Automation</c>.</param>
+        /// <returns>The script content.</returns>
+        /// <exception cref="FileNotFoundException">Thrown when the requested asset is not packaged.</exception>
+        /// <exception cref="DirectoryNotFoundException">Thrown when the automation asset folder cannot be resolved.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the packaged asset stream cannot be opened.</exception>
         private static async Task<string> LoadScriptCoreAsync(string fileName)
         {
             await using var stream = await FileSystem.OpenAppPackageFileAsync(
@@ -106,9 +185,11 @@ namespace DiscordQuestRunner.Services
         //  Debug-port health check
 
         /// <summary>
-        /// Returns whether Discord is running and the CDP debug port is reachable.
-        /// Throws typed exceptions so callers can react specifically.
+        /// Verifies that Discord is running and that the remote debugging endpoint responds.
         /// </summary>
+        /// <returns>A task that completes when the health check succeeds.</returns>
+        /// <exception cref="DiscordNotFoundException">Thrown when no Discord process is running.</exception>
+        /// <exception cref="DebugPortException">Thrown when the debug port is unreachable or returns a non-success status.</exception>
         public async Task CheckHealthAsync()
         {
             var procs = Process.GetProcessesByName("Discord");
@@ -132,8 +213,11 @@ namespace DiscordQuestRunner.Services
         }
 
         /// <summary>
-        /// Convenience wrapper that returns a simple bool instead of throwing.
+        /// Checks whether Discord is reachable through the debug port without propagating typed exceptions.
         /// </summary>
+        /// <returns>
+        /// <see langword="true"/> when the process and debug port are available; otherwise, <see langword="false"/>.
+        /// </returns>
         public async Task<bool> IsHealthyAsync()
         {
             try { await CheckHealthAsync(); return true; }
@@ -143,9 +227,13 @@ namespace DiscordQuestRunner.Services
         //  Discord restart
 
         /// <summary>
-        /// Kills Discord and relaunches it with <c>--remote-debugging-port</c> set.
-        /// Polls until the port is ready or the timeout expires.
+        /// Restarts Discord with the remote debugging switch enabled and waits for the debug endpoint to become ready.
         /// </summary>
+        /// <param name="log">Optional log sink used to report restart progress.</param>
+        /// <returns>A task that completes when the restarted process exposes the debug endpoint.</returns>
+        /// <exception cref="DirectoryNotFoundException">Thrown when the Discord installation folder cannot be located.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when the Discord executable cannot be located.</exception>
+        /// <exception cref="DebugPortException">Thrown when the restarted process never exposes the debug endpoint.</exception>
         public async Task RestartWithDebugAsync(LogHandler? log = null)
         {
             TerminateDiscordProcesses();
@@ -169,6 +257,9 @@ namespace DiscordQuestRunner.Services
             throw new DebugPortException("debug port did not become available after restart");
         }
 
+        /// <summary>
+        /// Terminates all running Discord processes before a debug-mode restart.
+        /// </summary>
         private static void TerminateDiscordProcesses()
         {
             foreach (var p in Process.GetProcessesByName("Discord"))
@@ -178,6 +269,14 @@ namespace DiscordQuestRunner.Services
             }
         }
 
+        /// <summary>
+        /// Resolves the newest Discord installation executable from the local app data folder.
+        /// </summary>
+        /// <returns>The absolute path to <c>Discord.exe</c>.</returns>
+        /// <exception cref="DirectoryNotFoundException">
+        /// Thrown when the Discord installation root or versioned application folder cannot be located.
+        /// </exception>
+        /// <exception cref="FileNotFoundException">Thrown when the resolved executable does not exist.</exception>
         private static string FindDiscordExecutable()
         {
             string discordRoot = Path.Combine(
@@ -206,9 +305,12 @@ namespace DiscordQuestRunner.Services
         //  CDP target discovery
 
         /// <summary>
-        /// Resolves the best Discord CDP page target and returns its WebSocket URL.
-        /// Priority: exact "Discord" title -> /channels/ URL -> any non-devtools page.
+        /// Selects the most relevant Discord page target exposed by Chromium's debug endpoint.
         /// </summary>
+        /// <returns>The selected target and a status message describing the attachment.</returns>
+        /// <exception cref="CdpTargetException">
+        /// Thrown when the target list cannot be queried or no suitable page target exists.
+        /// </exception>
         public async Task<(CdpTarget target, string message)> ResolveTargetAsync()
         {
             string json;
@@ -254,9 +356,16 @@ namespace DiscordQuestRunner.Services
         //  Script execution via CDP WebSocket
 
         /// <summary>
-        /// Opens a CDP WebSocket connection, injects <paramref name="script"/>,
-        /// streams console output to <paramref name="log"/>, and returns the result.
+        /// Connects to the selected Discord CDP target and evaluates a JavaScript payload.
         /// </summary>
+        /// <param name="wsUrl">CDP WebSocket target URL.</param>
+        /// <param name="script">JavaScript payload to evaluate inside the Discord renderer.</param>
+        /// <param name="log">Sink that receives forwarded console output and service messages.</param>
+        /// <param name="ct">Token that cancels the WebSocket session.</param>
+        /// <returns>The final script result returned by CDP.</returns>
+        /// <exception cref="UriFormatException">Thrown when <paramref name="wsUrl"/> is not a valid absolute URI.</exception>
+        /// <exception cref="WebSocketException">Thrown when the WebSocket connection cannot be established.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when <paramref name="ct"/> is cancelled.</exception>
         public async Task<ScriptResult> ExecuteScriptAsync(
             string wsUrl,
             string script,
@@ -288,6 +397,14 @@ namespace DiscordQuestRunner.Services
             return await DrainMessagesAsync(ws, sendLock, log, ct);
         }
 
+        /// <summary>
+        /// Reads CDP frames until the evaluation result arrives and forwards console output to the caller.
+        /// </summary>
+        /// <param name="ws">Connected CDP WebSocket client.</param>
+        /// <param name="sendLock">Semaphore that serializes outbound CDP commands.</param>
+        /// <param name="log">Sink that receives forwarded console output and service messages.</param>
+        /// <param name="ct">Token that cancels the WebSocket session.</param>
+        /// <returns>The final script result returned by CDP.</returns>
         private async Task<ScriptResult> DrainMessagesAsync(
             ClientWebSocket ws,
             SemaphoreSlim sendLock,
@@ -323,7 +440,8 @@ namespace DiscordQuestRunner.Services
                     {
                         var m = message.Trim();
 
-                        // Strip the [DQR SCRIPT] wrapper the JS log helper prepends
+                        // The injected scripts prefix console output so the bridge can distinguish
+                        // operational markers from Discord's own renderer logs.
                         const string scriptPrefix = "[DQR SCRIPT] ";
                         var rawPayload = m.StartsWith(scriptPrefix)
                             ? m.Substring(scriptPrefix.Length).Trim()
@@ -368,6 +486,14 @@ namespace DiscordQuestRunner.Services
             );
         }
 
+        /// <summary>
+        /// Extracts a human-readable console message from a <c>Runtime.consoleAPICalled</c> payload.
+        /// </summary>
+        /// <param name="root">Parsed CDP message node.</param>
+        /// <param name="message">Concatenated console message when extraction succeeds.</param>
+        /// <returns>
+        /// <see langword="true"/> when the CDP payload contains console arguments; otherwise, <see langword="false"/>.
+        /// </returns>
         private static bool TryExtractConsoleMessage(JsonNode root, out string message)
         {
             var argsNode = root["params"]?["args"] as JsonArray;
@@ -387,6 +513,17 @@ namespace DiscordQuestRunner.Services
             return true;
         }
 
+        /// <summary>
+        /// Handles service-specific control payloads emitted by the injected scripts.
+        /// </summary>
+        /// <param name="rawPayload">Console payload emitted by the script after the service banner has been removed.</param>
+        /// <param name="ws">Connected CDP WebSocket client.</param>
+        /// <param name="sendLock">Semaphore that serializes outbound CDP commands.</param>
+        /// <param name="log">Sink that receives forwarded service messages.</param>
+        /// <param name="ct">Token that cancels any follow-up CDP input dispatch.</param>
+        /// <returns>
+        /// <see langword="true"/> when the payload was consumed by the service; otherwise, <see langword="false"/>.
+        /// </returns>
         private static async Task<bool> TryHandleControlPayloadAsync(
             string rawPayload,
             ClientWebSocket ws,
@@ -433,6 +570,10 @@ namespace DiscordQuestRunner.Services
             }
 
             log($"Auto-clicking Captcha at X:{clickX} Y:{clickY}...", LogLevel.Success);
+
+            // The script emits DOM-derived coordinates through console output because CDP script
+            // evaluation and CDP input dispatch use different protocol commands. The service
+            // converts the console marker into native CDP mouse events without blocking the read loop.
             _ = Task.Run(
                 () => DispatchCaptchaClickAsync(ws, sendLock, clickX, clickY, ct),
                 CancellationToken.None);
@@ -440,6 +581,15 @@ namespace DiscordQuestRunner.Services
             return true;
         }
 
+        /// <summary>
+        /// Sends a synthesized mouse move and click sequence through CDP.
+        /// </summary>
+        /// <param name="ws">Connected CDP WebSocket client.</param>
+        /// <param name="sendLock">Semaphore that serializes outbound CDP commands.</param>
+        /// <param name="clickX">Horizontal click coordinate in renderer space.</param>
+        /// <param name="clickY">Vertical click coordinate in renderer space.</param>
+        /// <param name="ct">Token that cancels the click sequence.</param>
+        /// <returns>A task that completes when the click sequence finishes.</returns>
         private static async Task DispatchCaptchaClickAsync(
             ClientWebSocket ws,
             SemaphoreSlim sendLock,
@@ -495,7 +645,15 @@ namespace DiscordQuestRunner.Services
 
         //  WebSocket helpers
 
-        /// <summary>Reads a complete (potentially multi-chunk) WebSocket frame.</summary>
+        /// <summary>
+        /// Reads a complete WebSocket message, including messages fragmented across multiple CDP frames.
+        /// </summary>
+        /// <param name="ws">Connected CDP WebSocket client.</param>
+        /// <param name="buffer">Reusable receive buffer.</param>
+        /// <param name="ct">Token that cancels the receive operation.</param>
+        /// <returns>The decoded UTF-8 message payload.</returns>
+        /// <exception cref="WebSocketException">Thrown when the receive operation fails.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when <paramref name="ct"/> is cancelled.</exception>
         private static async Task<string> ReceiveFullFrameAsync(
             ClientWebSocket ws,
             byte[] buffer,
@@ -514,6 +672,18 @@ namespace DiscordQuestRunner.Services
             return Encoding.UTF8.GetString(ms.ToArray());
         }
 
+        /// <summary>
+        /// Sends a single CDP command over the shared WebSocket connection.
+        /// </summary>
+        /// <param name="ws">Connected CDP WebSocket client.</param>
+        /// <param name="sendLock">Semaphore that serializes outbound CDP commands.</param>
+        /// <param name="id">CDP command identifier.</param>
+        /// <param name="method">CDP method name.</param>
+        /// <param name="params">CDP method parameters.</param>
+        /// <param name="ct">Token that cancels the send operation.</param>
+        /// <returns>A task that completes when the command has been transmitted.</returns>
+        /// <exception cref="WebSocketException">Thrown when the send operation fails.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when <paramref name="ct"/> is cancelled.</exception>
         private static async Task SendCdpAsync(
             ClientWebSocket ws,
             SemaphoreSlim sendLock,
@@ -540,6 +710,11 @@ namespace DiscordQuestRunner.Services
             }
         }
 
+        /// <summary>
+        /// Closes the CDP WebSocket connection without surfacing cleanup failures.
+        /// </summary>
+        /// <param name="ws">Connected CDP WebSocket client.</param>
+        /// <returns>A task that completes after the best-effort close sequence.</returns>
         private static async Task SafeCloseAsync(ClientWebSocket ws)
         {
             if (ws.State == WebSocketState.Open)
@@ -555,11 +730,19 @@ namespace DiscordQuestRunner.Services
             }
         }
 
-        //  Noise filter
+        /// <summary>
+        /// Filters high-volume Discord telemetry that is not useful to the application log.
+        /// </summary>
+        /// <param name="message">Console message emitted by the renderer.</param>
+        /// <returns>
+        /// <see langword="true"/> when the message should be suppressed; otherwise, <see langword="false"/>.
+        /// </returns>
         private static bool IsNoise(string message) =>
             _noiseFilters.Any(f => message.Contains(f, StringComparison.OrdinalIgnoreCase));
 
-        //  IDisposable
+        /// <summary>
+        /// Marks the service as disposed.
+        /// </summary>
         public void Dispose()
         {
             if (_disposed) return;
@@ -567,18 +750,28 @@ namespace DiscordQuestRunner.Services
             // HttpClient is static/shared - do not dispose here.
         }
 
-        //  Backward-compatibility shims
-        //  These keep existing code-behind files compiling without changes.
-        //  New code should call the primary methods above directly.
-        /// <inheritdoc cref="LoadScriptWithBannerAsync"/>
+        /// <summary>
+        /// Loads a script with the legacy method name retained for existing callers.
+        /// </summary>
+        /// <param name="fileName">Asset filename stored under <c>Resources/Raw/Automation</c>.</param>
+        /// <returns>The wrapped script content.</returns>
+        /// <exception cref="FileNotFoundException">Thrown when the requested asset is not packaged.</exception>
+        /// <exception cref="DirectoryNotFoundException">Thrown when the automation asset folder cannot be resolved.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the packaged asset stream cannot be opened.</exception>
         public static Task<string> LoadScriptWithDebugBannerAsync(string fileName)
             => LoadScriptWithBannerAsync(fileName);
 
         /// <summary>
-        /// Legacy overload: accepts a plain <see cref="Action{String}"/> instead of
-        /// <see cref="LogHandler"/>. All log entries are forwarded with
-        /// <see cref="LogLevel.Script"/>.
+        /// Executes a script using a legacy log callback signature.
         /// </summary>
+        /// <param name="wsUrl">CDP WebSocket target URL.</param>
+        /// <param name="script">JavaScript payload to evaluate inside the Discord renderer.</param>
+        /// <param name="onLog">Sink that receives string-only log output.</param>
+        /// <param name="ct">Token that cancels the WebSocket session.</param>
+        /// <returns>The final script result returned by CDP.</returns>
+        /// <exception cref="UriFormatException">Thrown when <paramref name="wsUrl"/> is not a valid absolute URI.</exception>
+        /// <exception cref="WebSocketException">Thrown when the WebSocket connection cannot be established.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when <paramref name="ct"/> is cancelled.</exception>
         public Task<ScriptResult> ExecuteScriptAsync(
             string wsUrl,
             string script,
@@ -587,9 +780,11 @@ namespace DiscordQuestRunner.Services
             => ExecuteScriptAsync(wsUrl, script, (msg, _) => onLog(msg), ct);
 
         /// <summary>
-        /// Legacy signature: returns (isReady, processFound, message) tuple.
-        /// Prefer <see cref="CheckHealthAsync"/> or <see cref="IsHealthyAsync"/>.
+        /// Performs the legacy debug-port readiness check and returns status as a tuple.
         /// </summary>
+        /// <returns>
+        /// A tuple describing whether the port is ready, whether the process exists, and a status message.
+        /// </returns>
         public async Task<(bool isReady, bool processFound, string message)> CheckDebugPortAsync()
         {
             try
@@ -612,9 +807,10 @@ namespace DiscordQuestRunner.Services
         }
 
         /// <summary>
-        /// Legacy signature: returns (success, message) tuple.
-        /// Prefer <see cref="RestartWithDebugAsync"/>.
+        /// Restarts Discord using the legacy tuple-based return contract.
         /// </summary>
+        /// <param name="onLog">Optional sink that receives string-only restart progress output.</param>
+        /// <returns>A tuple describing whether the restart succeeded and the resulting status message.</returns>
         public async Task<(bool success, string message)> RestartDiscordAsync(
             Action<string>? onLog = null)
         {
@@ -634,9 +830,9 @@ namespace DiscordQuestRunner.Services
         }
 
         /// <summary>
-        /// Legacy signature: returns (success, message, wsUrl) tuple.
-        /// Prefer <see cref="ResolveTargetAsync"/>.
+        /// Resolves a CDP target using the legacy tuple-based return contract.
         /// </summary>
+        /// <returns>A tuple describing success, a status message, and the WebSocket URL when available.</returns>
         public async Task<(bool success, string message, string wsUrl)> InitConnectionAsync()
         {
             try
@@ -654,12 +850,29 @@ namespace DiscordQuestRunner.Services
             }
         }
 
-        // Private DTO for JSON deserialisation
+        /// <summary>
+        /// Represents a raw CDP target object returned by Chromium's JSON endpoint.
+        /// </summary>
         private sealed class RawCdpPage
         {
+            /// <summary>
+            /// Gets or sets the WebSocket endpoint used to communicate with the target.
+            /// </summary>
             public string? webSocketDebuggerUrl { get; set; }
+
+            /// <summary>
+            /// Gets or sets the CDP target type.
+            /// </summary>
             public string? type { get; set; }
+
+            /// <summary>
+            /// Gets or sets the visible title of the target.
+            /// </summary>
             public string? title { get; set; }
+
+            /// <summary>
+            /// Gets or sets the URL loaded by the target.
+            /// </summary>
             public string? url { get; set; }
         }
     }

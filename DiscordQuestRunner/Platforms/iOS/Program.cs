@@ -1,15 +1,19 @@
-﻿using ObjCRuntime;
+using ObjCRuntime;
 using UIKit;
 
 namespace DiscordQuestRunner
 {
+    /// <summary>
+    /// Provides the native iOS process entry point.
+    /// </summary>
     public class Program
     {
-        // This is the main entry point of the application.
-        static void Main(string[] args)
+        /// <summary>
+        /// Starts the UIKit application loop with the MAUI app delegate.
+        /// </summary>
+        /// <param name="args">Process arguments supplied by iOS.</param>
+        public static void Main(string[] args)
         {
-            // if you want to use a different Application Delegate class from "AppDelegate"
-            // you can specify it here.
             UIApplication.Main(args, null, typeof(AppDelegate));
         }
     }

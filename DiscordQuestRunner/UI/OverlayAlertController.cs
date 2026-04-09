@@ -1,5 +1,8 @@
 namespace DiscordQuestRunner.UI
 {
+    /// <summary>
+    /// Coordinates a reusable modal overlay that emulates a confirm or cancel dialog inside a MAUI page.
+    /// </summary>
     public sealed class OverlayAlertController
     {
         private readonly Grid _overlay;
@@ -10,6 +13,14 @@ namespace DiscordQuestRunner.UI
 
         private TaskCompletionSource<bool>? _pendingAlert;
 
+        /// <summary>
+        /// Initializes the controller with the visual elements that render the overlay alert.
+        /// </summary>
+        /// <param name="overlay">Overlay container that is shown and hidden during alert presentation.</param>
+        /// <param name="titleLabel">Label that displays the alert title.</param>
+        /// <param name="messageLabel">Label that displays the alert body text.</param>
+        /// <param name="confirmButton">Button that resolves the alert positively.</param>
+        /// <param name="cancelButton">Button that resolves the alert negatively.</param>
         public OverlayAlertController(
             Grid overlay,
             Label titleLabel,
@@ -24,6 +35,19 @@ namespace DiscordQuestRunner.UI
             _cancelButton = cancelButton;
         }
 
+        /// <summary>
+        /// Displays the configured overlay alert and awaits the user selection.
+        /// </summary>
+        /// <param name="title">Title rendered at the top of the alert.</param>
+        /// <param name="message">Body text rendered inside the alert.</param>
+        /// <param name="confirmText">Text displayed on the confirm button.</param>
+        /// <param name="cancelText">Optional text displayed on the cancel button.</param>
+        /// <returns>
+        /// <see langword="true"/> when the confirm button is selected; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when a second alert is requested while another alert is still active.
+        /// </exception>
         public async Task<bool> ShowAsync(
             string title,
             string message,
@@ -53,10 +77,23 @@ namespace DiscordQuestRunner.UI
             return await _pendingAlert.Task;
         }
 
+        /// <summary>
+        /// Resolves the active alert as confirmed.
+        /// </summary>
+        /// <returns>A task that completes after the overlay has been dismissed.</returns>
         public Task ConfirmAsync() => CloseAsync(true);
 
+        /// <summary>
+        /// Resolves the active alert as cancelled.
+        /// </summary>
+        /// <returns>A task that completes after the overlay has been dismissed.</returns>
         public Task CancelAsync() => CloseAsync(false);
 
+        /// <summary>
+        /// Hides the overlay and resolves the pending alert task.
+        /// </summary>
+        /// <param name="result">Result returned to the caller awaiting the alert.</param>
+        /// <returns>A task that completes after the closing animation finishes.</returns>
         private async Task CloseAsync(bool result)
         {
             if (_pendingAlert is null)

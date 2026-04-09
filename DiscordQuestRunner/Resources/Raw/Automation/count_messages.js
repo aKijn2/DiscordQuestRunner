@@ -1,18 +1,45 @@
 // Message Counter Script
 // Placeholders CHANNEL_ID_PLACEHOLDER and USER_ID_PLACEHOLDER are replaced at runtime.
 (async function () {
+    /**
+     * Suspends execution between paged Discord API requests.
+     *
+     * @param {number} ms Delay in milliseconds.
+     * @returns {Promise<void>} Promise resolved after the delay completes.
+     */
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+    /**
+     * Extracts the internal Webpack runtime so the script can locate Discord stores and API clients.
+     *
+     * @returns {any} Discord's Webpack runtime require function.
+     * @throws {Error} Thrown when the Webpack chunk bootstrap fails.
+     */
     const resolveWebpackRequire = () => {
         const wpRequire = webpackChunkdiscord_app.push([[Symbol()], {}, (runtime) => runtime]);
         webpackChunkdiscord_app.pop();
         return wpRequire;
     };
 
+    /**
+     * Resolves Discord's internal REST client from the Webpack module cache.
+     *
+     * @param {any} wpRequire Discord's Webpack runtime require function.
+     * @returns {any | undefined} Internal REST client used by the desktop renderer.
+     */
     const resolveApi = (wpRequire) =>
         Object.values(wpRequire.c).find((entry) => entry?.exports?.tn?.get)?.exports?.tn
         || Object.values(wpRequire.c).find((entry) => entry?.exports?.Bo?.get)?.exports?.Bo;
 
+    /**
+     * Fetches a single page of channel messages.
+     *
+     * @param {any} api Discord's internal REST client.
+     * @param {string} channelId Discord channel identifier.
+     * @param {string | null} beforeId Message identifier used for backward pagination.
+     * @returns {Promise<any[]>} Message batch returned by Discord.
+     * @throws {Error} Propagates Discord API transport and validation failures.
+     */
     const fetchBatch = async (api, channelId, beforeId) => {
         const url = beforeId
             ? `/channels/${channelId}/messages?before=${beforeId}&limit=100`

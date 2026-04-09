@@ -3,6 +3,9 @@ using DiscordQuestRunner.UI;
 
 namespace DiscordQuestRunner.Pages
 {
+    /// <summary>
+    /// Hosts the main quest automation workflow and bridges UI actions to the Discord CDP service.
+    /// </summary>
     public partial class QuestRunnerPage : ContentPage
     {
         private const int MaxRetries = 40;
@@ -25,6 +28,10 @@ namespace DiscordQuestRunner.Pages
         private bool _isRunning;
         private CancellationTokenSource? _runCts;
 
+        /// <summary>
+        /// Initializes the page and binds the shared alert and log controllers to the view.
+        /// </summary>
+        /// <param name="discordService">Service that manages CDP discovery and script execution.</param>
         public QuestRunnerPage(DiscordService discordService)
         {
             InitializeComponent();
@@ -39,6 +46,19 @@ namespace DiscordQuestRunner.Pages
                 AlertCancelBtn);
         }
 
+        /// <summary>
+        /// Shows a page-scoped modal alert.
+        /// </summary>
+        /// <param name="title">Alert title.</param>
+        /// <param name="message">Alert body text.</param>
+        /// <param name="confirmText">Text rendered on the confirm button.</param>
+        /// <param name="cancelText">Optional text rendered on the cancel button.</param>
+        /// <returns>
+        /// <see langword="true"/> when the user confirms the dialog; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when a second alert is requested before the active alert has been resolved.
+        /// </exception>
         private Task<bool> ShowNexusAlertAsync(
             string title,
             string message,
@@ -46,18 +66,42 @@ namespace DiscordQuestRunner.Pages
             string? cancelText = null) =>
             _alertController.ShowAsync(title, message, confirmText, cancelText);
 
+        /// <summary>
+        /// Appends a formatted line to the runtime log.
+        /// </summary>
+        /// <param name="message">Message text to append.</param>
+        /// <param name="prefix">Optional prefix rendered in brackets ahead of the message.</param>
         private void Log(string message, string prefix = "") =>
             _ = _logConsole.AppendLineAsync(message, prefix);
 
+        /// <summary>
+        /// Resets the runtime log to a single starting line.
+        /// </summary>
+        /// <param name="firstLine">Initial line displayed after the reset.</param>
         private void ResetLog(string firstLine) =>
             _ = _logConsole.ResetAsync(firstLine);
 
+        /// <summary>
+        /// Resolves the active overlay alert as confirmed.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnAlertConfirmClicked(object sender, EventArgs e) =>
             await _alertController.ConfirmAsync();
 
+        /// <summary>
+        /// Resolves the active overlay alert as cancelled.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnAlertCancelClicked(object sender, EventArgs e) =>
             await _alertController.CancelAsync();
 
+        /// <summary>
+        /// Opens the message purge page on supported desktop targets.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnOpenDeleterClicked(object sender, EventArgs e)
         {
 #if WINDOWS
@@ -70,12 +114,22 @@ namespace DiscordQuestRunner.Pages
 #endif
         }
 
+        /// <summary>
+        /// Copies the buffered runtime log to the system clipboard.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnCopyLogClicked(object sender, EventArgs e)
         {
             await Clipboard.SetTextAsync(_logConsole.Text);
             await ShowNexusAlertAsync("DATA EXPORTED", "Runtime log copied to system clipboard.", "OK");
         }
 
+        /// <summary>
+        /// Starts the quest automation sequence after validating Discord connectivity.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnRunClicked(object sender, EventArgs e)
         {
 #if WINDOWS
@@ -127,6 +181,13 @@ namespace DiscordQuestRunner.Pages
 #endif
         }
 
+        /// <summary>
+        /// Ensures Discord is reachable through the debug port and resolves the active CDP target.
+        /// </summary>
+        /// <param name="cancellationToken">Token that cancels the startup sequence.</param>
+        /// <returns>
+        /// A tuple containing the WebSocket URL and status message when initialization succeeds; otherwise, <see langword="null"/>.
+        /// </returns>
         private async Task<(string wsUrl, string message)?> TryInitializeConnectionAsync(
             CancellationToken cancellationToken)
         {
@@ -151,6 +212,13 @@ namespace DiscordQuestRunner.Pages
             return (connection.wsUrl, connection.message);
         }
 
+        /// <summary>
+        /// Verifies that Discord exposes the CDP debug endpoint and optionally restarts the client when required.
+        /// </summary>
+        /// <param name="cancellationToken">Token that cancels the restart path before the client is relaunched.</param>
+        /// <returns>
+        /// <see langword="true"/> when the debug port is available; otherwise, <see langword="false"/>.
+        /// </returns>
         private async Task<bool> EnsureDebugPortAsync(CancellationToken cancellationToken)
         {
             var portCheck = await _discordService.CheckDebugPortAsync();
@@ -191,6 +259,15 @@ namespace DiscordQuestRunner.Pages
             return true;
         }
 
+        /// <summary>
+        /// Executes the auto-enrollment script before the main quest loop starts.
+        /// </summary>
+        /// <param name="wsUrl">CDP WebSocket target used to evaluate the script.</param>
+        /// <param name="cancellationToken">Token that cancels the script execution or the post-run delay.</param>
+        /// <returns>A task that completes after the auto-enrollment sequence finishes.</returns>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown when <paramref name="cancellationToken"/> is cancelled during execution.
+        /// </exception>
         private async Task RunAutoAcceptAsync(string wsUrl, CancellationToken cancellationToken)
         {
             Log("Injecting Auto-Accept payload...");
@@ -208,6 +285,15 @@ namespace DiscordQuestRunner.Pages
             Log("Auto-Accept sequence completed.");
         }
 
+        /// <summary>
+        /// Replays the quest runner script until the emitted terminal markers indicate completion.
+        /// </summary>
+        /// <param name="wsUrl">Initial CDP WebSocket target used to evaluate the quest runner script.</param>
+        /// <param name="cancellationToken">Token that cancels the retry loop.</param>
+        /// <returns>A task that completes when the loop exits.</returns>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown when <paramref name="cancellationToken"/> is cancelled during a retry delay or script execution.
+        /// </exception>
         private async Task RunQuestLoopAsync(
             string wsUrl,
             CancellationToken cancellationToken)
@@ -250,6 +336,11 @@ namespace DiscordQuestRunner.Pages
             Log($"Max retry limit ({MaxRetries}) reached. Check Discord manually.", "WARN");
         }
 
+        /// <summary>
+        /// Re-resolves the CDP target because Discord can rotate page targets during long-running automation.
+        /// </summary>
+        /// <param name="currentWsUrl">Current WebSocket target URL.</param>
+        /// <returns>The refreshed WebSocket URL when a new target is found; otherwise, the original URL.</returns>
         private async Task<string> RefreshWebSocketTargetAsync(string currentWsUrl)
         {
             var recheck = await _discordService.InitConnectionAsync();
@@ -262,6 +353,10 @@ namespace DiscordQuestRunner.Pages
             return currentWsUrl;
         }
 
+        /// <summary>
+        /// Applies the current run state to the primary controls.
+        /// </summary>
+        /// <param name="running">Whether quest automation is currently active.</param>
         private void SetRunningState(bool running)
         {
             _isRunning = running;

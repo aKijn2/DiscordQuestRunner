@@ -2,6 +2,9 @@ using System.Text;
 
 namespace DiscordQuestRunner.UI
 {
+    /// <summary>
+    /// Buffers log output for a MAUI label and keeps the scroll position pinned to the latest entry.
+    /// </summary>
     public sealed class LogConsoleController
     {
         private readonly Label _outputLabel;
@@ -9,10 +12,22 @@ namespace DiscordQuestRunner.UI
         private readonly Label? _lineCountLabel;
         private readonly StringBuilder _buffer = new();
 
+        /// <summary>
+        /// Gets the current number of rendered log lines.
+        /// </summary>
         public int LineCount { get; private set; }
 
+        /// <summary>
+        /// Gets the complete buffered log text.
+        /// </summary>
         public string Text => _buffer.ToString();
 
+        /// <summary>
+        /// Initializes the log controller for a page-specific output surface.
+        /// </summary>
+        /// <param name="outputLabel">Label that renders the buffered log text.</param>
+        /// <param name="scrollView">Scroll container that should follow appended log entries.</param>
+        /// <param name="lineCountLabel">Optional label that displays the current line count.</param>
         public LogConsoleController(
             Label outputLabel,
             ScrollView scrollView,
@@ -28,6 +43,11 @@ namespace DiscordQuestRunner.UI
             UpdateLineCountLabel();
         }
 
+        /// <summary>
+        /// Replaces the current log buffer with a single starting line.
+        /// </summary>
+        /// <param name="firstLine">Initial line that should replace the current buffer.</param>
+        /// <returns>A task that completes after the UI has been updated on the main thread.</returns>
         public Task ResetAsync(string firstLine) =>
             MainThread.InvokeOnMainThreadAsync(() =>
             {
@@ -38,6 +58,12 @@ namespace DiscordQuestRunner.UI
                 UpdateLineCountLabel();
             });
 
+        /// <summary>
+        /// Appends a line to the buffer and scrolls the output view to the end.
+        /// </summary>
+        /// <param name="message">Message text to append.</param>
+        /// <param name="prefix">Optional prefix rendered in brackets ahead of the message.</param>
+        /// <returns>A task that completes after the UI has been updated and scrolled.</returns>
         public Task AppendLineAsync(string message, string prefix = "") =>
             MainThread.InvokeOnMainThreadAsync(async () =>
             {
@@ -64,6 +90,9 @@ namespace DiscordQuestRunner.UI
                     animated: true);
             });
 
+        /// <summary>
+        /// Updates the optional line count label to match the current buffer.
+        /// </summary>
         private void UpdateLineCountLabel()
         {
             if (_lineCountLabel is null)
@@ -76,6 +105,11 @@ namespace DiscordQuestRunner.UI
                 : $"{LineCount} lines";
         }
 
+        /// <summary>
+        /// Counts logical lines in the buffered output.
+        /// </summary>
+        /// <param name="text">Buffered text to inspect.</param>
+        /// <returns>The number of newline-delimited lines.</returns>
         private static int CountLines(string text)
         {
             if (string.IsNullOrEmpty(text))

@@ -1,25 +1,24 @@
-﻿using Microsoft.UI.Xaml;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+using Microsoft.UI.Xaml;
 
 namespace DiscordQuestRunner.WinUI
 {
     /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
+    /// Hosts the MAUI application inside the WinUI bootstrapper process.
     /// </summary>
     public partial class App : MauiWinUIApplication
     {
         /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
+        /// Initializes the WinUI application wrapper.
         /// </summary>
         public App()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
+        /// <summary>
+        /// Builds the shared MAUI application instance.
+        /// </summary>
+        /// <returns>The configured <see cref="MauiApp"/>.</returns>
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
     }
-
 }

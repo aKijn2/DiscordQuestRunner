@@ -3,6 +3,9 @@ using DiscordQuestRunner.UI;
 
 namespace DiscordQuestRunner.Pages
 {
+    /// <summary>
+    /// Hosts the message counting and deletion workflow for a specific Discord channel and user.
+    /// </summary>
     public partial class MessagePurgePage : ContentPage
     {
         private readonly DiscordService _discordService;
@@ -12,6 +15,10 @@ namespace DiscordQuestRunner.Pages
         private bool _isAborting;
         private CancellationTokenSource? _purgeCts;
 
+        /// <summary>
+        /// Initializes the page and binds the shared alert and log controllers to the view.
+        /// </summary>
+        /// <param name="discordService">Service that manages CDP discovery and script execution.</param>
         public MessagePurgePage(DiscordService discordService)
         {
             InitializeComponent();
@@ -34,6 +41,19 @@ namespace DiscordQuestRunner.Pages
             });
         }
 
+        /// <summary>
+        /// Shows a page-scoped modal alert.
+        /// </summary>
+        /// <param name="title">Alert title.</param>
+        /// <param name="message">Alert body text.</param>
+        /// <param name="confirmText">Text rendered on the confirm button.</param>
+        /// <param name="cancelText">Optional text rendered on the cancel button.</param>
+        /// <returns>
+        /// <see langword="true"/> when the user confirms the dialog; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when a second alert is requested before the active alert has been resolved.
+        /// </exception>
         private Task<bool> ShowNexusAlertAsync(
             string title,
             string message,
@@ -41,15 +61,36 @@ namespace DiscordQuestRunner.Pages
             string? cancelText = null) =>
             _alertController.ShowAsync(title, message, confirmText, cancelText);
 
+        /// <summary>
+        /// Appends a line to the purge log.
+        /// </summary>
+        /// <param name="message">Message text to append.</param>
         private void Log(string message) =>
             _ = _logConsole.AppendLineAsync($"> {message}");
 
+        /// <summary>
+        /// Resolves the active overlay alert as confirmed.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnAlertConfirmClicked(object sender, EventArgs e) =>
             await _alertController.ConfirmAsync();
 
+        /// <summary>
+        /// Resolves the active overlay alert as cancelled.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnAlertCancelClicked(object sender, EventArgs e) =>
             await _alertController.CancelAsync();
 
+        /// <summary>
+        /// Validates that a value matches the length and character constraints of a Discord snowflake identifier.
+        /// </summary>
+        /// <param name="value">Identifier candidate supplied by the user.</param>
+        /// <returns>
+        /// <see langword="true"/> when the value looks like a Discord snowflake; otherwise, <see langword="false"/>.
+        /// </returns>
         private static bool IsValidSnowflakeId(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -60,6 +101,11 @@ namespace DiscordQuestRunner.Pages
             return value.Length >= 17 && value.Length <= 20 && value.All(char.IsDigit);
         }
 
+        /// <summary>
+        /// Copies the buffered purge log to the system clipboard.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnCopyLogClicked(object sender, EventArgs e)
         {
             await Clipboard.SetTextAsync(_logConsole.Text);
@@ -69,6 +115,11 @@ namespace DiscordQuestRunner.Pages
                 "OK");
         }
 
+        /// <summary>
+        /// Requests cancellation for the active purge sequence.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private void OnAbortClicked(object sender, EventArgs e)
         {
             if (_purgeCts is null || _purgeCts.IsCancellationRequested)
@@ -82,6 +133,11 @@ namespace DiscordQuestRunner.Pages
             Log("[WARN] ABORT REQUESTED - Halting after current operation...");
         }
 
+        /// <summary>
+        /// Starts the count and purge workflow after validating the supplied identifiers.
+        /// </summary>
+        /// <param name="sender">Button that raised the event.</param>
+        /// <param name="e">Event data supplied by MAUI.</param>
         private async void OnDeleteClicked(object sender, EventArgs e)
         {
 #if WINDOWS
@@ -191,6 +247,13 @@ namespace DiscordQuestRunner.Pages
 #endif
         }
 
+        /// <summary>
+        /// Ensures Discord is reachable through the debug port and resolves the active CDP target.
+        /// </summary>
+        /// <param name="cancellationToken">Token that cancels the startup sequence.</param>
+        /// <returns>
+        /// A tuple containing the WebSocket URL and status message when initialization succeeds; otherwise, <see langword="null"/>.
+        /// </returns>
         private async Task<(string wsUrl, string message)?> TryInitializeConnectionAsync(
             CancellationToken cancellationToken)
         {
@@ -239,6 +302,19 @@ namespace DiscordQuestRunner.Pages
             return (connection.wsUrl, connection.message);
         }
 
+        /// <summary>
+        /// Executes the count script and extracts the message total from the emitted log markers.
+        /// </summary>
+        /// <param name="wsUrl">CDP WebSocket target used to evaluate the script.</param>
+        /// <param name="channelId">Discord channel identifier.</param>
+        /// <param name="userId">Discord user identifier.</param>
+        /// <param name="cancellationToken">Token that cancels the script execution.</param>
+        /// <returns>
+        /// The parsed message count when the script completes successfully; otherwise, <see langword="null"/>.
+        /// </returns>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown when <paramref name="cancellationToken"/> is cancelled during script execution.
+        /// </exception>
         private async Task<int?> CountMessagesAsync(
             string wsUrl,
             string channelId,
@@ -277,6 +353,17 @@ namespace DiscordQuestRunner.Pages
             return countResult;
         }
 
+        /// <summary>
+        /// Executes the delete script and updates the progress counters from emitted log markers.
+        /// </summary>
+        /// <param name="wsUrl">CDP WebSocket target used to evaluate the script.</param>
+        /// <param name="channelId">Discord channel identifier.</param>
+        /// <param name="userId">Discord user identifier.</param>
+        /// <param name="cancellationToken">Token that cancels the script execution.</param>
+        /// <returns>A task that completes when the delete script exits.</returns>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown when <paramref name="cancellationToken"/> is cancelled during script execution.
+        /// </exception>
         private async Task ExecuteDeleteAsync(
             string wsUrl,
             string channelId,
@@ -308,6 +395,10 @@ namespace DiscordQuestRunner.Pages
                 cancellationToken);
         }
 
+        /// <summary>
+        /// Applies the busy state to the page controls.
+        /// </summary>
+        /// <param name="isBusy">Whether the purge workflow is currently active.</param>
         private void SetBusyState(bool isBusy)
         {
             DeleteBtn.IsEnabled = !isBusy;
@@ -320,6 +411,11 @@ namespace DiscordQuestRunner.Pages
             }
         }
 
+        /// <summary>
+        /// Updates the counter widgets from the latest delete progress.
+        /// </summary>
+        /// <param name="totalMessages">Total number of messages scheduled for deletion.</param>
+        /// <param name="deletedMessages">Number of messages deleted so far.</param>
         private void UpdateCounters(int totalMessages, int deletedMessages)
         {
             MainThread.BeginInvokeOnMainThread(() =>
@@ -334,6 +430,9 @@ namespace DiscordQuestRunner.Pages
             });
         }
 
+        /// <summary>
+        /// Clears the counter widgets after the purge workflow finishes.
+        /// </summary>
         private void ResetCounters()
         {
             MainThread.BeginInvokeOnMainThread(() =>
