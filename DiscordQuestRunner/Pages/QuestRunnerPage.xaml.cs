@@ -191,73 +191,120 @@ namespace DiscordQuestRunner.Pages
         private async Task<(string wsUrl, string message)?> TryInitializeConnectionAsync(
             CancellationToken cancellationToken)
         {
-            Log("Checking Discord process...");
+            Log("Running preflight environment check...", "SYS");
 
-            if (!await EnsureDebugPortAsync(cancellationToken))
+            var preflight = await RunPreflightWithRecoveryAsync(
+                DiscordAutomationCapability.RestApi | DiscordAutomationCapability.QuestsStore,
+                cancellationToken);
+
+            if (preflight is null || string.IsNullOrWhiteSpace(preflight.WebSocketDebuggerUrl))
             {
                 return null;
             }
 
-            Log("Acquiring WebSocket target...");
-            var connection = await _discordService.InitConnectionAsync();
-
-            if (!connection.success)
-            {
-                Log($"ERROR: {connection.message}");
-                await ShowNexusAlertAsync("TARGET ERROR", connection.message, "CLOSE");
-                return null;
-            }
-
-            Log(connection.message);
-            return (connection.wsUrl, connection.message);
+            Log("Preflight complete. Startup conditions verified.", "SYS");
+            return (preflight.WebSocketDebuggerUrl, "Preflight complete.");
         }
 
         /// <summary>
-        /// Verifies that Discord exposes the CDP debug endpoint and optionally restarts the client when required.
+        /// Runs the shared preflight checks and optionally restarts Discord when only the debug port is missing.
         /// </summary>
-        /// <param name="cancellationToken">Token that cancels the restart path before the client is relaunched.</param>
+        /// <param name="requiredCapabilities">Automation capabilities required by the workflow.</param>
+        /// <param name="cancellationToken">Token that cancels the preflight or restart path.</param>
         /// <returns>
-        /// <see langword="true"/> when the debug port is available; otherwise, <see langword="false"/>.
+        /// A successful preflight report when startup conditions are satisfied; otherwise, <see langword="null"/>.
         /// </returns>
-        private async Task<bool> EnsureDebugPortAsync(CancellationToken cancellationToken)
+        /// <exception cref="OperationCanceledException">
+        /// Thrown when <paramref name="cancellationToken"/> is cancelled during the restart path.
+        /// </exception>
+        private async Task<DiscordPreflightReport?> RunPreflightWithRecoveryAsync(
+            DiscordAutomationCapability requiredCapabilities,
+            CancellationToken cancellationToken)
         {
-            var portCheck = await _discordService.CheckDebugPortAsync();
+            var preflight = await _discordService.RunPreflightAsync(requiredCapabilities, cancellationToken);
+            LogPreflightReport(preflight);
 
-            if (portCheck.isReady)
+            if (preflight.Success)
             {
-                Log("Connection established with Discord.");
-                return true;
+                return preflight;
             }
 
-            Log($"WARNING: {portCheck.message}");
-
-            var proceed = await ShowNexusAlertAsync(
-                "RESTART REQUIRED",
-                "Discord must be restarted in Debug Mode to continue. Authorize restart?",
-                "AUTHORIZE",
-                "ABORT");
-
-            if (!proceed)
+            if (!preflight.ProcessFound)
             {
-                Log("Operation aborted by user.");
-                return false;
+                await ShowNexusAlertAsync(
+                    "DISCORD NOT FOUND",
+                    preflight.FailureMessage,
+                    "CLOSE");
+                return null;
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Log("Initiating restart protocol...");
-            var restart = await _discordService.RestartDiscordAsync(msg => Log(msg, "SYS"));
-
-            if (!restart.success)
+            if (!preflight.DebugPortReady)
             {
-                Log($"FATAL: {restart.message}");
-                await ShowNexusAlertAsync("RESTART FAILED", restart.message, "CLOSE");
-                return false;
+                var proceed = await ShowNexusAlertAsync(
+                    "RESTART REQUIRED",
+                    "Discord must be restarted in Debug Mode to continue. Authorize restart?",
+                    "AUTHORIZE",
+                    "ABORT");
+
+                if (!proceed)
+                {
+                    Log("Operation aborted by user.", "SYS");
+                    return null;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                Log("Initiating restart protocol...", "SYS");
+                var restart = await _discordService.RestartDiscordAsync(msg => Log(msg, "SYS"));
+
+                if (!restart.success)
+                {
+                    Log($"FATAL: {restart.message}");
+                    await ShowNexusAlertAsync("RESTART FAILED", restart.message, "CLOSE");
+                    return null;
+                }
+
+                Log(restart.message, "SYS");
+                preflight = await _discordService.RunPreflightAsync(requiredCapabilities, cancellationToken);
+                LogPreflightReport(preflight);
+
+                if (preflight.Success)
+                {
+                    return preflight;
+                }
             }
 
-            Log(restart.message);
-            return true;
+            await ShowNexusAlertAsync("PREFLIGHT FAILED", preflight.FailureMessage, "CLOSE");
+            return null;
         }
+
+        /// <summary>
+        /// Writes the preflight stage results to the runtime log in execution order.
+        /// </summary>
+        /// <param name="report">Report emitted by the shared preflight service.</param>
+        private void LogPreflightReport(DiscordPreflightReport report)
+        {
+            foreach (var step in report.Steps)
+            {
+                var prefix = step.Success ? "CHK" : "WARN";
+                Log($"{FormatPreflightStage(step.Stage)}: {step.Message}", prefix);
+            }
+        }
+
+        /// <summary>
+        /// Formats a preflight stage into a short log label.
+        /// </summary>
+        /// <param name="stage">Stage being written to the log.</param>
+        /// <returns>A compact label for the stage.</returns>
+        private static string FormatPreflightStage(DiscordPreflightStage stage) =>
+            stage switch
+            {
+                DiscordPreflightStage.Process => "PROCESS",
+                DiscordPreflightStage.DebugPort => "DEBUG PORT",
+                DiscordPreflightStage.Target => "TARGET",
+                DiscordPreflightStage.AutomationSurface => "AUTOMATION",
+                _ => "PREFLIGHT",
+            };
 
         /// <summary>
         /// Executes the auto-enrollment script before the main quest loop starts.

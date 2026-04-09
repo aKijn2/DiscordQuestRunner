@@ -108,6 +108,7 @@ namespace DiscordQuestRunner.Services
             "service release channel", "libdiscore",
             "[Notification]", "GatewaySocket",
         ];
+        private static readonly LogHandler _ignoreLogHandler = static (_, _) => { };
 
         private static readonly HttpClient _http = new()
         {
@@ -222,6 +223,87 @@ namespace DiscordQuestRunner.Services
         {
             try { await CheckHealthAsync(); return true; }
             catch { return false; }
+        }
+
+        /// <summary>
+        /// Runs a lightweight environment validation flow before automation starts.
+        /// </summary>
+        /// <param name="requiredCapabilities">Automation capabilities that must be available for the caller.</param>
+        /// <param name="ct">Token that cancels the preflight run.</param>
+        /// <returns>An ordered report describing each stage of the validation flow.</returns>
+        /// <exception cref="OperationCanceledException">Thrown when <paramref name="ct"/> is cancelled.</exception>
+        public async Task<DiscordPreflightReport> RunPreflightAsync(
+            DiscordAutomationCapability requiredCapabilities,
+            CancellationToken ct = default)
+        {
+            var steps = new List<DiscordPreflightStep>();
+
+            var processes = Process.GetProcessesByName("Discord");
+            if (processes.Length == 0)
+            {
+                steps.Add(new DiscordPreflightStep(
+                    DiscordPreflightStage.Process,
+                    false,
+                    "Discord process not found. Launch Discord and open the desktop client first."));
+                return new DiscordPreflightReport(null, steps);
+            }
+
+            steps.Add(new DiscordPreflightStep(
+                DiscordPreflightStage.Process,
+                true,
+                $"Discord process detected ({processes.Length} instance(s))."));
+
+            try
+            {
+                await CheckHealthAsync();
+                steps.Add(new DiscordPreflightStep(
+                    DiscordPreflightStage.DebugPort,
+                    true,
+                    $"CDP debug port {DEBUG_PORT} is reachable."));
+            }
+            catch (Exception ex) when (ex is DebugPortException or DiscordNotFoundException)
+            {
+                steps.Add(new DiscordPreflightStep(
+                    DiscordPreflightStage.DebugPort,
+                    false,
+                    ex.Message));
+                return new DiscordPreflightReport(null, steps);
+            }
+
+            CdpTarget target;
+            try
+            {
+                (target, _) = await ResolveTargetAsync();
+                steps.Add(new DiscordPreflightStep(
+                    DiscordPreflightStage.Target,
+                    true,
+                    $"Renderer target ready: {target.Title}."));
+            }
+            catch (Exception ex) when (ex is CdpTargetException)
+            {
+                steps.Add(new DiscordPreflightStep(
+                    DiscordPreflightStage.Target,
+                    false,
+                    ex.Message));
+                return new DiscordPreflightReport(null, steps);
+            }
+
+            if (requiredCapabilities == DiscordAutomationCapability.None)
+            {
+                return new DiscordPreflightReport(target.WebSocketDebuggerUrl, steps);
+            }
+
+            var probeResult = await ProbeAutomationSurfaceAsync(
+                target.WebSocketDebuggerUrl,
+                requiredCapabilities,
+                ct);
+
+            steps.Add(new DiscordPreflightStep(
+                DiscordPreflightStage.AutomationSurface,
+                probeResult.Success,
+                probeResult.Message));
+
+            return new DiscordPreflightReport(target.WebSocketDebuggerUrl, steps);
         }
 
         //  Discord restart
@@ -741,6 +823,107 @@ namespace DiscordQuestRunner.Services
             _noiseFilters.Any(f => message.Contains(f, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
+        /// Validates that the target renderer still exposes the internal Discord modules required by automation.
+        /// </summary>
+        /// <param name="wsUrl">CDP WebSocket target URL.</param>
+        /// <param name="requiredCapabilities">Capabilities that must resolve successfully.</param>
+        /// <param name="ct">Token that cancels the renderer probe.</param>
+        /// <returns>A tuple describing whether the automation surface is ready and why.</returns>
+        /// <exception cref="OperationCanceledException">Thrown when <paramref name="ct"/> is cancelled.</exception>
+        private async Task<(bool Success, string Message)> ProbeAutomationSurfaceAsync(
+            string wsUrl,
+            DiscordAutomationCapability requiredCapabilities,
+            CancellationToken ct)
+        {
+            var probeScript = await LoadScriptAsync(DiscordScriptCatalog.PreflightProbe);
+            var scriptResult = await ExecuteScriptAsync(
+                wsUrl,
+                probeScript,
+                _ignoreLogHandler,
+                ct);
+
+            if (!scriptResult.Success)
+            {
+                return (false, $"Automation probe failed: {scriptResult.Error ?? "Unknown renderer error."}");
+            }
+
+            if (string.IsNullOrWhiteSpace(scriptResult.Output))
+            {
+                return (false, "Automation probe returned no result.");
+            }
+
+            AutomationProbePayload? payload;
+            try
+            {
+                payload = JsonSerializer.Deserialize<AutomationProbePayload>(scriptResult.Output);
+            }
+            catch (JsonException)
+            {
+                return (false, "Automation probe returned malformed data.");
+            }
+
+            if (payload is null)
+            {
+                return (false, "Automation probe returned an empty payload.");
+            }
+
+            var missingCapabilities = new List<string>();
+            if (requiredCapabilities.HasFlag(DiscordAutomationCapability.RestApi) && !payload.HasRestApi)
+            {
+                missingCapabilities.Add("REST API");
+            }
+
+            if (requiredCapabilities.HasFlag(DiscordAutomationCapability.QuestsStore) && !payload.HasQuestsStore)
+            {
+                missingCapabilities.Add("Quests store");
+            }
+
+            if (missingCapabilities.Count == 0)
+            {
+                return (true, $"Automation surface verified for {DescribeCapabilities(requiredCapabilities)}.");
+            }
+
+            return (
+                false,
+                $"{BuildCapabilityFailureMessage(requiredCapabilities, missingCapabilities)} {payload.Detail}".Trim());
+        }
+
+        /// <summary>
+        /// Formats a concise failure message for missing automation capabilities.
+        /// </summary>
+        /// <param name="requiredCapabilities">Capabilities requested by the caller.</param>
+        /// <param name="missingCapabilities">Capabilities that were not resolved during probing.</param>
+        /// <returns>A user-facing failure string.</returns>
+        private static string BuildCapabilityFailureMessage(
+            DiscordAutomationCapability requiredCapabilities,
+            IReadOnlyList<string> missingCapabilities) =>
+            $"Automation surface incomplete for {DescribeCapabilities(requiredCapabilities)}: missing {string.Join(", ", missingCapabilities)}.";
+
+        /// <summary>
+        /// Formats the capability flags into a user-facing label.
+        /// </summary>
+        /// <param name="capabilities">Capabilities to describe.</param>
+        /// <returns>A short label describing the requested capability set.</returns>
+        private static string DescribeCapabilities(DiscordAutomationCapability capabilities)
+        {
+            var labels = new List<string>();
+
+            if (capabilities.HasFlag(DiscordAutomationCapability.RestApi))
+            {
+                labels.Add("REST API");
+            }
+
+            if (capabilities.HasFlag(DiscordAutomationCapability.QuestsStore))
+            {
+                labels.Add("Quests store");
+            }
+
+            return labels.Count == 0
+                ? "base startup checks"
+                : string.Join(" + ", labels);
+        }
+
+        /// <summary>
         /// Marks the service as disposed.
         /// </summary>
         public void Dispose()
@@ -874,6 +1057,37 @@ namespace DiscordQuestRunner.Services
             /// Gets or sets the URL loaded by the target.
             /// </summary>
             public string? url { get; set; }
+        }
+
+        /// <summary>
+        /// Represents the serialized startup probe response returned by the renderer.
+        /// </summary>
+        private sealed class AutomationProbePayload
+        {
+            /// <summary>
+            /// Gets or sets a value indicating whether the probe considered the surface fully ready.
+            /// </summary>
+            public bool Ok { get; set; }
+
+            /// <summary>
+            /// Gets or sets the diagnostic detail emitted by the probe.
+            /// </summary>
+            public string? Detail { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether the Webpack runtime was resolved.
+            /// </summary>
+            public bool HasWebpackRuntime { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether the internal REST client was resolved.
+            /// </summary>
+            public bool HasRestApi { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether the quests store was resolved.
+            /// </summary>
+            public bool HasQuestsStore { get; set; }
         }
     }
 }
