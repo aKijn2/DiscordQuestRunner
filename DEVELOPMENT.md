@@ -86,11 +86,6 @@ DiscordQuestRunner/
 - [x] **STATS ROW**: Implement stats row logic.
 - [x] **Captcha Handling**: Improve workflow around manual/automated captcha interruptions.
 - [x] **Fix Watch Video**: Progress logic refactored to allow unhindered loop and robust CDP payload synchronization.
-- [ ] **Multi-Account Support**: Manage and run quests across multiple Discord instances/profiles smoothly.
-- [ ] **Custom Settings UI**: Allow users to configure clicker delays and interval settings directly from the app interface.
-- [ ] **Headless/CLI Mode**: Support running the runner from the command line without the GUI for power users.
-- [ ] **Linux Support**: Port the process detection and path resolution to support Linux Discord clients (Native/Flatpak/Snap).
-- [ ] **Refactor**: Clean up and modularize service code.
 
 ---
 
