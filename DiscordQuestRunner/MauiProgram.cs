@@ -18,7 +18,7 @@ namespace DiscordQuestRunner
 
             // Services
             builder.Services.AddSingleton<DiscordService>();
-            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<Pages.QuestRunnerPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

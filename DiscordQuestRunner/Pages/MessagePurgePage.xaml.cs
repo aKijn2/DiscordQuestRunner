@@ -2,24 +2,24 @@
 
 namespace DiscordQuestRunner.Pages
 {
-    public partial class DeleterPage : ContentPage
+    public partial class MessagePurgePage : ContentPage
     {
         private readonly DiscordService _discordService;
         private bool _isAborting = false;
-        private TaskCompletionSource<bool> _alertTcs; // Powers the custom UI alerts
+        private TaskCompletionSource<bool>? _alertTcs; // Powers the custom UI alerts
 
-        public DeleterPage(DiscordService discordService)
+        public MessagePurgePage(DiscordService discordService)
         {
             InitializeComponent();
             _discordService = discordService;
 
             Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("NoBorder", (handler, view) =>
-    {
+            {
 #if WINDOWS
-        handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-        handler.PlatformView.Background = null;
+                handler.PlatformView.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+                handler.PlatformView.Background = null;
 #endif
-    });
+            });
         }
 
         // CUSTOM ALERT SYSTEM
@@ -324,5 +324,3 @@ namespace DiscordQuestRunner.Pages
         }
     }
 }
-
-                   

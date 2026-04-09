@@ -36,7 +36,7 @@ namespace DiscordQuestRunner.Services
         private const int DEBUG_PORT = 9222;
         private const string DEBUG_BASE_URL = "http://127.0.0.1:9222";
         private const int RESTART_POLL_SECS = 15;
-        private const int WS_BUFFER_BYTES = 1024 * 32; // 32 KB € handles large Discord payloads
+        private const int WS_BUFFER_BYTES = 1024 * 32; // 32 KB handles large Discord payloads
         private const int SCRIPT_COMMAND_ID = 100;
 
         // Telemetry strings we silently drop from Discord's console output
@@ -56,10 +56,10 @@ namespace DiscordQuestRunner.Services
 
         //  Script loading
 
-        /// <summary>Loads a bundled script from Resources/Raw/Scripts/.</summary>
+        /// <summary>Loads a bundled script from Resources/Raw/Automation/.</summary>
         public static async Task<string> LoadScriptAsync(string fileName)
         {
-            await using var stream = await FileSystem.OpenAppPackageFileAsync($"Scripts/{fileName}");
+            await using var stream = await FileSystem.OpenAppPackageFileAsync($"Automation/{fileName}");
             using var reader = new StreamReader(stream);
             return await reader.ReadToEndAsync();
         }
@@ -100,7 +100,7 @@ namespace DiscordQuestRunner.Services
         }
 
         /// <summary>
-        /// Convenience wrapper € returns a simple bool instead of throwing.
+        /// Convenience wrapper that returns a simple bool instead of throwing.
         /// </summary>
         public async Task<bool> IsHealthyAsync()
         {
@@ -175,7 +175,7 @@ namespace DiscordQuestRunner.Services
 
         /// <summary>
         /// Resolves the best Discord CDP page target and returns its WebSocket URL.
-        /// Priority: exact "Discord" title â†’ /channels/ URL â†’ any non-devtools page.
+        /// Priority: exact "Discord" title -> /channels/ URL -> any non-devtools page.
         /// </summary>
         public async Task<(CdpTarget target, string message)> ResolveTargetAsync()
         {
@@ -184,7 +184,7 @@ namespace DiscordQuestRunner.Services
             {
                 json = await _http.GetStringAsync($"{DEBUG_BASE_URL}/json");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw new CdpTargetException(); // wrap low-level HTTP error
             }
@@ -273,17 +273,18 @@ namespace DiscordQuestRunner.Services
                 if (method == "Runtime.consoleAPICalled")
                 {
                     var argsNode = root["params"]?["args"] as JsonArray;
-var msg = "";
-if (argsNode != null)
-{
-    var stringParts = new System.Collections.Generic.List<string>();
-    foreach (var arg in argsNode)
-    {
-        var val = arg?["value"]?.ToString() ?? "";
-        stringParts.Add(val);
-    }
-    msg = string.Join(" ", stringParts);
-}
+                    var msg = "";
+                    if (argsNode != null)
+                    {
+                        var stringParts = new List<string>();
+                        foreach (var arg in argsNode)
+                        {
+                            var val = arg?["value"]?.ToString() ?? "";
+                            stringParts.Add(val);
+                        }
+
+                        msg = string.Join(" ", stringParts);
+                    }
                     if (!string.IsNullOrWhiteSpace(msg) && !IsNoise(msg))
                     {
                         var m = msg.Trim();
@@ -428,7 +429,7 @@ if (argsNode != null)
         {
             if (_disposed) return;
             _disposed = true;
-            // HttpClient is static/shared â€“ do not dispose here.
+            // HttpClient is static/shared - do not dispose here.
         }
 
         //  Backward-compatibility shims

@@ -1,5 +1,5 @@
 ﻿<ContentPage
-    x:Class="DiscordQuestRunner.MainPage"
+    x:Class="DiscordQuestRunner.Pages.QuestRunnerPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     BackgroundColor="{AppThemeBinding Light={StaticResource PageBgLight}, Dark={StaticResource PageBgDark}}"
@@ -280,7 +280,7 @@
             FontSize="10"
             HorizontalOptions="Center"
             Opacity="0.35"
-            Text="NEXUS // Use responsibly � Check Discord ToS"
+            Text="NEXUS // Use responsibly - Check Discord ToS"
             TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
 
         <!-- === MODAL OVERLAY === -->

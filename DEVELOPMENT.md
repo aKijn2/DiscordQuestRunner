@@ -41,6 +41,45 @@ The app operates by connecting to Discord's embedded Chromium instance via its r
 
 ---
 
+## Project Structure
+
+The workspace is now organized by responsibility instead of mixing pages, assets, and helper code at the project root:
+
+```text
+DiscordQuestRunner/
+|- README.md
+|- DEVELOPMENT.md
+|- docs/
+|  \- assets/
+|- DiscordQuestRunner/
+|  |- App.xaml
+|  |- App.xaml.cs
+|  |- MauiProgram.cs
+|  |- Pages/
+|  |  |- QuestRunnerPage.xaml
+|  |  \- MessagePurgePage.xaml
+|  |- Services/
+|  |  \- Discord/
+|  |     \- DiscordService.cs
+|  |- Interop/
+|  |  \- Windows/
+|  |     \- WindowHelper.cs
+|  |- Resources/
+|  |  \- Raw/
+|  |     \- Automation/
+|  \- Platforms/
+```
+
+### Folder intent
+
+- `Pages/`: All user-facing MAUI screens and their code-behind.
+- `Services/Discord/`: Runtime automation, CDP connection logic, script execution, and health checks.
+- `Interop/Windows/`: Native Windows-only helpers that should stay separate from cross-platform code.
+- `Resources/Raw/Automation/`: Bundled JavaScript payloads injected into Discord at runtime.
+- `docs/assets/`: Screenshots and documentation-only media that should not ship with the app binary.
+
+---
+
 ## Roadmap
 
 - [x] **Auto-Accept Quests**: Automatically accept currently valid visible quests.

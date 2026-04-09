@@ -12,7 +12,7 @@
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            var mainPage = _serviceProvider.GetRequiredService<MainPage>();
+            var mainPage = _serviceProvider.GetRequiredService<Pages.QuestRunnerPage>();
             var navPage = new NavigationPage(mainPage);
 
             var window = new Window(navPage)

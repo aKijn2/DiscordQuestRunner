@@ -1,8 +1,8 @@
 ﻿using DiscordQuestRunner.Services;
 
-namespace DiscordQuestRunner
+namespace DiscordQuestRunner.Pages
 {
-    public partial class MainPage : ContentPage
+    public partial class QuestRunnerPage : ContentPage
     {
         // State
         private readonly DiscordService _discordService;
@@ -26,7 +26,7 @@ namespace DiscordQuestRunner
         ];
 
         // Constructor
-        public MainPage(DiscordService discordService)
+        public QuestRunnerPage(DiscordService discordService)
         {
             InitializeComponent();
             _discordService = discordService;
@@ -96,7 +96,7 @@ namespace DiscordQuestRunner
         private async void OnOpenDeleterClicked(object sender, EventArgs e)
         {
 #if WINDOWS
-            await Navigation.PushAsync(new Pages.DeleterPage(_discordService));
+            await Navigation.PushAsync(new MessagePurgePage(_discordService));
 #else
             await ShowNexusAlertAsync(
                 "SYSTEM ERROR",
