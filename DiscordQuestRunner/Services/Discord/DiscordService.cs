@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -37,7 +38,11 @@ namespace DiscordQuestRunner.Services
         private const string DEBUG_BASE_URL = "http://127.0.0.1:9222";
         private const int RESTART_POLL_SECS = 15;
         private const int WS_BUFFER_BYTES = 1024 * 32; // 32 KB handles large Discord payloads
+        private const int RUNTIME_ENABLE_COMMAND_ID = 1;
         private const int SCRIPT_COMMAND_ID = 100;
+        private const int CAPTCHA_MOUSE_MOVE_COMMAND_ID = 9001;
+        private const int CAPTCHA_MOUSE_DOWN_COMMAND_ID = 9002;
+        private const int CAPTCHA_MOUSE_UP_COMMAND_ID = 9003;
 
         // Telemetry strings we silently drop from Discord's console output
         private static readonly string[] _noiseFilters =
@@ -51,6 +56,8 @@ namespace DiscordQuestRunner.Services
         {
             Timeout = TimeSpan.FromSeconds(4),
         };
+        private static readonly ConcurrentDictionary<string, Task<string>> _scriptCache =
+            new(StringComparer.OrdinalIgnoreCase);
 
         private bool _disposed;
 
@@ -59,9 +66,26 @@ namespace DiscordQuestRunner.Services
         /// <summary>Loads a bundled script from Resources/Raw/Automation/.</summary>
         public static async Task<string> LoadScriptAsync(string fileName)
         {
-            await using var stream = await FileSystem.OpenAppPackageFileAsync($"Automation/{fileName}");
-            using var reader = new StreamReader(stream);
-            return await reader.ReadToEndAsync();
+            if (_scriptCache.TryGetValue(fileName, out var cachedScript))
+            {
+                return await cachedScript;
+            }
+
+            var loadTask = LoadScriptCoreAsync(fileName);
+            if (!_scriptCache.TryAdd(fileName, loadTask))
+            {
+                return await _scriptCache[fileName];
+            }
+
+            try
+            {
+                return await loadTask;
+            }
+            catch
+            {
+                _scriptCache.TryRemove(fileName, out _);
+                throw;
+            }
         }
 
         /// <summary>Loads a script and prepends a DQR console banner.</summary>
@@ -69,6 +93,14 @@ namespace DiscordQuestRunner.Services
         {
             var script = await LoadScriptAsync(fileName);
             return $"console.log('[DQR] Loaded script asset: {fileName}');\n{script}";
+        }
+
+        private static async Task<string> LoadScriptCoreAsync(string fileName)
+        {
+            await using var stream = await FileSystem.OpenAppPackageFileAsync(
+                $"Automation/{fileName}");
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
         }
 
         //  Debug-port health check
@@ -232,20 +264,33 @@ namespace DiscordQuestRunner.Services
             CancellationToken ct = default)
         {
             using var ws = new ClientWebSocket();
+            using var sendLock = new SemaphoreSlim(1, 1);
             await ws.ConnectAsync(new Uri(wsUrl), ct);
 
             // Enable Runtime domain so console.log events flow back to us
-            await SendCdpAsync(ws, 1, "Runtime.enable", new { }, ct);
+            await SendCdpAsync(
+                ws,
+                sendLock,
+                RUNTIME_ENABLE_COMMAND_ID,
+                "Runtime.enable",
+                new { },
+                ct);
 
             // Fire the script; awaitPromise handles async scripts correctly
-            await SendCdpAsync(ws, SCRIPT_COMMAND_ID, "Runtime.evaluate",
-                new { expression = script, awaitPromise = true }, ct);
+            await SendCdpAsync(
+                ws,
+                sendLock,
+                SCRIPT_COMMAND_ID,
+                "Runtime.evaluate",
+                new { expression = script, awaitPromise = true },
+                ct);
 
-            return await DrainMessagesAsync(ws, log, ct);
+            return await DrainMessagesAsync(ws, sendLock, log, ct);
         }
 
         private async Task<ScriptResult> DrainMessagesAsync(
             ClientWebSocket ws,
+            SemaphoreSlim sendLock,
             LogHandler log,
             CancellationToken ct)
         {
@@ -272,22 +317,11 @@ namespace DiscordQuestRunner.Services
                 // Console log events
                 if (method == "Runtime.consoleAPICalled")
                 {
-                    var argsNode = root["params"]?["args"] as JsonArray;
-                    var msg = "";
-                    if (argsNode != null)
+                    if (TryExtractConsoleMessage(root, out var message)
+                        && !string.IsNullOrWhiteSpace(message)
+                        && !IsNoise(message))
                     {
-                        var stringParts = new List<string>();
-                        foreach (var arg in argsNode)
-                        {
-                            var val = arg?["value"]?.ToString() ?? "";
-                            stringParts.Add(val);
-                        }
-
-                        msg = string.Join(" ", stringParts);
-                    }
-                    if (!string.IsNullOrWhiteSpace(msg) && !IsNoise(msg))
-                    {
-                        var m = msg.Trim();
+                        var m = message.Trim();
 
                         // Strip the [DQR SCRIPT] wrapper the JS log helper prepends
                         const string scriptPrefix = "[DQR SCRIPT] ";
@@ -295,51 +329,13 @@ namespace DiscordQuestRunner.Services
                             ? m.Substring(scriptPrefix.Length).Trim()
                             : m;
 
-                        if (rawPayload == "[DQR] RESTORE_WINDOW")
+                        if (await TryHandleControlPayloadAsync(
+                            rawPayload,
+                            ws,
+                            sendLock,
+                            log,
+                            ct))
                         {
-                            var processes = Process.GetProcessesByName("Discord");
-                            var mainProcess = processes.FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
-                            if (mainProcess != null)
-                            {
-                                log("Discord logic minimized. Restoring window to perform UI click...", LogLevel.Warning);
-                                WindowHelper.FocusWindow(mainProcess.MainWindowHandle);
-                            }
-                            continue;
-                        }
-
-                        if (rawPayload.StartsWith("[DQR] CLICK_CAPTCHA:"))
-                        {
-                            try
-                            {
-                                var coords = rawPayload.Substring("[DQR] CLICK_CAPTCHA:".Length).Split(',');
-                                if (coords.Length == 2 && int.TryParse(coords[0].Trim(), out int cx) && int.TryParse(coords[1].Trim(), out int cy))
-                                {
-                                    log($"Auto-clicking Captcha at X:{cx} Y:{cy}...", LogLevel.Success);
-
-                                    // Non-blocking so the websocket reader loop is never stalled
-                                    _ = Task.Run(async () =>
-                                    {
-                                        try
-                                        {
-                                            await SendCdpAsync(ws, 9001, "Input.dispatchMouseEvent", new { type = "mouseMoved", x = cx, y = cy }, ct);
-                                            await Task.Delay(80, ct);
-                                            await SendCdpAsync(ws, 9002, "Input.dispatchMouseEvent", new { type = "mousePressed", x = cx, y = cy, button = "left", clickCount = 1 }, ct);
-                                            await Task.Delay(80, ct);
-                                            await SendCdpAsync(ws, 9003, "Input.dispatchMouseEvent", new { type = "mouseReleased", x = cx, y = cy, button = "left", clickCount = 1 }, ct);
-                                        }
-                                        catch { }
-                                    }, ct);
-
-                                    continue;
-                                }
-                            }
-                            catch { }
-                        }
-
-
-                        if (rawPayload == "[DQR] CLICK_CAPTCHA_NOTFOUND")
-                        {
-                            log("Captcha iframe not found in DOM yet - waiting...", LogLevel.Warning);
                             continue;
                         }
 
@@ -372,6 +368,131 @@ namespace DiscordQuestRunner.Services
             );
         }
 
+        private static bool TryExtractConsoleMessage(JsonNode root, out string message)
+        {
+            var argsNode = root["params"]?["args"] as JsonArray;
+            if (argsNode is null)
+            {
+                message = string.Empty;
+                return false;
+            }
+
+            var stringParts = new List<string>();
+            foreach (var arg in argsNode)
+            {
+                stringParts.Add(arg?["value"]?.ToString() ?? string.Empty);
+            }
+
+            message = string.Join(" ", stringParts);
+            return true;
+        }
+
+        private static async Task<bool> TryHandleControlPayloadAsync(
+            string rawPayload,
+            ClientWebSocket ws,
+            SemaphoreSlim sendLock,
+            LogHandler log,
+            CancellationToken ct)
+        {
+            if (rawPayload == "[DQR] RESTORE_WINDOW")
+            {
+                var mainProcess = Process.GetProcessesByName("Discord")
+                    .FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
+
+                if (mainProcess != null)
+                {
+                    log(
+                        "Discord logic minimized. Restoring window to perform UI click...",
+                        LogLevel.Warning);
+                    WindowHelper.FocusWindow(mainProcess.MainWindowHandle);
+                }
+
+                return true;
+            }
+
+            if (rawPayload == "[DQR] CLICK_CAPTCHA_NOTFOUND")
+            {
+                log("Captcha iframe not found in DOM yet - waiting...", LogLevel.Warning);
+                return true;
+            }
+
+            if (!rawPayload.StartsWith("[DQR] CLICK_CAPTCHA:", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var coords = rawPayload
+                .Substring("[DQR] CLICK_CAPTCHA:".Length)
+                .Split(',');
+
+            if (coords.Length != 2
+                || !int.TryParse(coords[0].Trim(), out var clickX)
+                || !int.TryParse(coords[1].Trim(), out var clickY))
+            {
+                return false;
+            }
+
+            log($"Auto-clicking Captcha at X:{clickX} Y:{clickY}...", LogLevel.Success);
+            _ = Task.Run(
+                () => DispatchCaptchaClickAsync(ws, sendLock, clickX, clickY, ct),
+                CancellationToken.None);
+
+            return true;
+        }
+
+        private static async Task DispatchCaptchaClickAsync(
+            ClientWebSocket ws,
+            SemaphoreSlim sendLock,
+            int clickX,
+            int clickY,
+            CancellationToken ct)
+        {
+            try
+            {
+                await SendCdpAsync(
+                    ws,
+                    sendLock,
+                    CAPTCHA_MOUSE_MOVE_COMMAND_ID,
+                    "Input.dispatchMouseEvent",
+                    new { type = "mouseMoved", x = clickX, y = clickY },
+                    ct);
+                await Task.Delay(80, ct);
+                await SendCdpAsync(
+                    ws,
+                    sendLock,
+                    CAPTCHA_MOUSE_DOWN_COMMAND_ID,
+                    "Input.dispatchMouseEvent",
+                    new
+                    {
+                        type = "mousePressed",
+                        x = clickX,
+                        y = clickY,
+                        button = "left",
+                        clickCount = 1
+                    },
+                    ct);
+                await Task.Delay(80, ct);
+                await SendCdpAsync(
+                    ws,
+                    sendLock,
+                    CAPTCHA_MOUSE_UP_COMMAND_ID,
+                    "Input.dispatchMouseEvent",
+                    new
+                    {
+                        type = "mouseReleased",
+                        x = clickX,
+                        y = clickY,
+                        button = "left",
+                        clickCount = 1
+                    },
+                    ct);
+            }
+            catch
+            {
+                // Best-effort click sequence.
+            }
+        }
+
         //  WebSocket helpers
 
         /// <summary>Reads a complete (potentially multi-chunk) WebSocket frame.</summary>
@@ -395,6 +516,7 @@ namespace DiscordQuestRunner.Services
 
         private static async Task SendCdpAsync(
             ClientWebSocket ws,
+            SemaphoreSlim sendLock,
             int id,
             string method,
             object @params,
@@ -402,7 +524,20 @@ namespace DiscordQuestRunner.Services
         {
             var payload = new { id, method, @params };
             var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload));
-            await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, ct);
+
+            await sendLock.WaitAsync(ct);
+            try
+            {
+                await ws.SendAsync(
+                    new ArraySegment<byte>(bytes),
+                    WebSocketMessageType.Text,
+                    true,
+                    ct);
+            }
+            finally
+            {
+                sendLock.Release();
+            }
         }
 
         private static async Task SafeCloseAsync(ClientWebSocket ws)

@@ -1,22 +1,15 @@
-﻿using DiscordQuestRunner.Services;
+using DiscordQuestRunner.Services;
+using DiscordQuestRunner.UI;
 
 namespace DiscordQuestRunner.Pages
 {
     public partial class QuestRunnerPage : ContentPage
     {
-        // State
-        private readonly DiscordService _discordService;
-        private bool _isRunning;
-        private CancellationTokenSource? _cts;
-        private TaskCompletionSource<bool>? _alertTcs;
+        private const int MaxRetries = 40;
+        private const int RetryDelayMs = 4000;
+        private const int PostAcceptDelayMs = 800;
 
-        // Quest runner retry configuration
-        private const int MAX_RETRIES = 40;   // max cycles before giving up
-        private const int RETRY_DELAY_MS = 4000; // wait between script re-injections
-        private const int POST_ACCEPT_MS = 800;  // settle time after auto-accept
-
-        // Strings that mean "all done, stop looping"
-        private static readonly string[] _terminalPhrases =
+        private static readonly string[] TerminalPhrases =
         [
             "No uncompleted quests found",
             "No new valid quests",
@@ -25,74 +18,46 @@ namespace DiscordQuestRunner.Pages
             "All jobs done",
         ];
 
-        // Constructor
+        private readonly DiscordService _discordService;
+        private readonly LogConsoleController _logConsole;
+        private readonly OverlayAlertController _alertController;
+
+        private bool _isRunning;
+        private CancellationTokenSource? _runCts;
+
         public QuestRunnerPage(DiscordService discordService)
         {
             InitializeComponent();
+
             _discordService = discordService;
+            _logConsole = new LogConsoleController(StatusLbl, LogScroll, LineCountLbl);
+            _alertController = new OverlayAlertController(
+                ModalOverlay,
+                AlertTitleLbl,
+                AlertMessageLbl,
+                AlertConfirmBtn,
+                AlertCancelBtn);
         }
 
-        //  Custom alert modal
-        private async Task<bool> ShowNexusAlertAsync(
+        private Task<bool> ShowNexusAlertAsync(
             string title,
             string message,
             string confirmText,
-            string? cancelText = null)
-        {
-            AlertTitleLbl.Text = title.ToUpper();
-            AlertMessageLbl.Text = message;
-            AlertConfirmBtn.Text = confirmText.ToUpper();
-
-            bool hasCancel = !string.IsNullOrEmpty(cancelText);
-            AlertCancelBtn.IsVisible = hasCancel;
-            AlertCancelBtn.Text = hasCancel ? cancelText!.ToUpper() : string.Empty;
-            Grid.SetColumnSpan(AlertConfirmBtn, hasCancel ? 1 : 2);
-
-            ModalOverlay.IsVisible = true;
-            await ModalOverlay.FadeTo(1, 200, Easing.CubicOut);
-
-            _alertTcs = new TaskCompletionSource<bool>();
-            return await _alertTcs.Task;
-        }
-
-        private async void OnAlertConfirmClicked(object sender, EventArgs e)
-        {
-            await ModalOverlay.FadeTo(0, 150, Easing.CubicIn);
-            ModalOverlay.IsVisible = false;
-            _alertTcs?.TrySetResult(true);
-        }
-
-        private async void OnAlertCancelClicked(object sender, EventArgs e)
-        {
-            await ModalOverlay.FadeTo(0, 150, Easing.CubicIn);
-            ModalOverlay.IsVisible = false;
-            _alertTcs?.TrySetResult(false);
-        }
-
-        //  Logging helpers
-        private int _lineCount = 3;
+            string? cancelText = null) =>
+            _alertController.ShowAsync(title, message, confirmText, cancelText);
 
         private void Log(string message, string prefix = "") =>
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                string line = string.IsNullOrEmpty(prefix) ? message : $"[{prefix}] {message}";
-                StatusLbl.Text += $"\n{line}";
-                _lineCount++;
-                if (LineCountLbl is not null)
-                    LineCountLbl.Text = $"{_lineCount} lines";
-                await LogScroll.ScrollToAsync(StatusLbl, ScrollToPosition.End, animated: true);
-            });
+            _ = _logConsole.AppendLineAsync(message, prefix);
 
         private void ResetLog(string firstLine) =>
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                StatusLbl.Text = firstLine;
-                _lineCount = 1;
-                if (LineCountLbl is not null)
-                    LineCountLbl.Text = "1 line";
-            });
+            _ = _logConsole.ResetAsync(firstLine);
 
-        //  Button handlers
+        private async void OnAlertConfirmClicked(object sender, EventArgs e) =>
+            await _alertController.ConfirmAsync();
+
+        private async void OnAlertCancelClicked(object sender, EventArgs e) =>
+            await _alertController.CancelAsync();
+
         private async void OnOpenDeleterClicked(object sender, EventArgs e)
         {
 #if WINDOWS
@@ -107,96 +72,37 @@ namespace DiscordQuestRunner.Pages
 
         private async void OnCopyLogClicked(object sender, EventArgs e)
         {
-            await Clipboard.SetTextAsync(StatusLbl.Text);
+            await Clipboard.SetTextAsync(_logConsole.Text);
             await ShowNexusAlertAsync("DATA EXPORTED", "Runtime log copied to system clipboard.", "OK");
         }
 
         private async void OnRunClicked(object sender, EventArgs e)
         {
 #if WINDOWS
-            if (_isRunning) return;
+            if (_isRunning)
+            {
+                return;
+            }
 
-            _cts = new CancellationTokenSource();
+            _runCts = new CancellationTokenSource();
             SetRunningState(true);
 
             try
             {
                 ResetLog("[SYS] Initializing sequence...");
-                Log("Checking Discord process...");
 
-                // ── 1. Health check ────────────────────────────────────────
-                var portCheck = await _discordService.CheckDebugPortAsync();
-
-                if (!portCheck.isReady)
+                var connection = await TryInitializeConnectionAsync(_runCts.Token);
+                if (connection is null)
                 {
-                    Log($"WARNING: {portCheck.message}");
-
-                    bool proceed = await ShowNexusAlertAsync(
-                        "RESTART REQUIRED",
-                        "Discord must be restarted in Debug Mode to continue. Authorize restart?",
-                        "AUTHORIZE",
-                        "ABORT");
-
-                    if (!proceed)
-                    {
-                        Log("Operation aborted by user.");
-                        return;
-                    }
-
-                    Log("Initiating restart protocol...");
-                    var restart = await _discordService.RestartDiscordAsync(
-                        msg => Log(msg, "SYS"));
-
-                    if (!restart.success)
-                    {
-                        Log($"FATAL: {restart.message}");
-                        await ShowNexusAlertAsync("RESTART FAILED", restart.message, "CLOSE");
-                        return;
-                    }
-
-                    Log(restart.message);
-                }
-                else
-                {
-                    Log("Connection established with Discord.");
-                }
-
-                // ── 2. Resolve CDP target ──────────────────────────────────
-                Log("Acquiring WebSocket target...");
-                var connection = await _discordService.InitConnectionAsync();
-
-                if (!connection.success)
-                {
-                    Log($"ERROR: {connection.message}");
-                    await ShowNexusAlertAsync("TARGET ERROR", connection.message, "CLOSE");
                     return;
                 }
 
-                Log(connection.message);
-
-                // ── 3. Auto-accept (single pass, no retry needed) ──────────
                 if (AutoAcceptSwitch.IsToggled)
                 {
-                    Log("Injecting Auto-Accept payload...");
-                    string autoScript = await DiscordService.LoadScriptWithDebugBannerAsync(
-                        "auto_accept_v2.js");
-
-                    await _discordService.ExecuteScriptAsync(
-                        connection.wsUrl,
-                        autoScript,
-                        msg => Log(msg, "AUTO"),
-                        _cts.Token);
-
-                    await Task.Delay(POST_ACCEPT_MS, _cts.Token);
-                    Log("Auto-Accept sequence completed.");
+                    await RunAutoAcceptAsync(connection.Value.wsUrl, _runCts.Token);
                 }
 
-                // ── 4. Quest runner — auto retry loop ─────────────────────
-                Log("Loading Quest Runner script...");
-                string questScript = await DiscordService.LoadScriptWithDebugBannerAsync(
-                    "quest_runner_v2.js");
-
-                await RunQuestLoopAsync(connection.wsUrl, questScript, _cts.Token);
+                await RunQuestLoopAsync(connection.Value.wsUrl, _runCts.Token);
             }
             catch (OperationCanceledException)
             {
@@ -209,8 +115,8 @@ namespace DiscordQuestRunner.Pages
             }
             finally
             {
-                _cts?.Dispose();
-                _cts = null;
+                _runCts?.Dispose();
+                _runCts = null;
                 SetRunningState(false);
             }
 #else
@@ -221,68 +127,140 @@ namespace DiscordQuestRunner.Pages
 #endif
         }
 
-        //  Quest runner retry loop
-        //  Discord's video quest only advances ~14 % per script run because the
-        //  JS payload returns after one progress tick. We keep re-injecting on
+        private async Task<(string wsUrl, string message)?> TryInitializeConnectionAsync(
+            CancellationToken cancellationToken)
+        {
+            Log("Checking Discord process...");
+
+            if (!await EnsureDebugPortAsync(cancellationToken))
+            {
+                return null;
+            }
+
+            Log("Acquiring WebSocket target...");
+            var connection = await _discordService.InitConnectionAsync();
+
+            if (!connection.success)
+            {
+                Log($"ERROR: {connection.message}");
+                await ShowNexusAlertAsync("TARGET ERROR", connection.message, "CLOSE");
+                return null;
+            }
+
+            Log(connection.message);
+            return (connection.wsUrl, connection.message);
+        }
+
+        private async Task<bool> EnsureDebugPortAsync(CancellationToken cancellationToken)
+        {
+            var portCheck = await _discordService.CheckDebugPortAsync();
+
+            if (portCheck.isReady)
+            {
+                Log("Connection established with Discord.");
+                return true;
+            }
+
+            Log($"WARNING: {portCheck.message}");
+
+            var proceed = await ShowNexusAlertAsync(
+                "RESTART REQUIRED",
+                "Discord must be restarted in Debug Mode to continue. Authorize restart?",
+                "AUTHORIZE",
+                "ABORT");
+
+            if (!proceed)
+            {
+                Log("Operation aborted by user.");
+                return false;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Log("Initiating restart protocol...");
+            var restart = await _discordService.RestartDiscordAsync(msg => Log(msg, "SYS"));
+
+            if (!restart.success)
+            {
+                Log($"FATAL: {restart.message}");
+                await ShowNexusAlertAsync("RESTART FAILED", restart.message, "CLOSE");
+                return false;
+            }
+
+            Log(restart.message);
+            return true;
+        }
+
+        private async Task RunAutoAcceptAsync(string wsUrl, CancellationToken cancellationToken)
+        {
+            Log("Injecting Auto-Accept payload...");
+
+            var autoScript = await DiscordService.LoadScriptWithDebugBannerAsync(
+                DiscordScriptCatalog.AutoAccept);
+
+            await _discordService.ExecuteScriptAsync(
+                wsUrl,
+                autoScript,
+                msg => Log(msg, "AUTO"),
+                cancellationToken);
+
+            await Task.Delay(PostAcceptDelayMs, cancellationToken);
+            Log("Auto-Accept sequence completed.");
+        }
 
         private async Task RunQuestLoopAsync(
             string wsUrl,
-            string script,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
-            int attempt = 0;
-            bool allComplete = false;
+            Log("Loading Quest Runner script...");
+            var questScript = await DiscordService.LoadScriptWithDebugBannerAsync(
+                DiscordScriptCatalog.QuestRunner);
 
-            while (!allComplete && attempt < MAX_RETRIES && !ct.IsCancellationRequested)
+            var attempt = 0;
+
+            while (attempt < MaxRetries && !cancellationToken.IsCancellationRequested)
             {
                 attempt++;
-                Log($"Cycle {attempt}/{MAX_RETRIES}", "SCRIPT");
-
-                // Collect all output lines produced during this execution
-                var outputLines = new List<string>();
+                Log($"Cycle {attempt}/{MaxRetries}", "SCRIPT");
 
                 var scriptResult = await _discordService.ExecuteScriptAsync(
                     wsUrl,
-                    script,
-                    msg =>
-                    {
-                        outputLines.Add(msg);
-                        Log(msg, "SCRIPT");
-                    },
-                    ct);
+                    questScript,
+                    msg => Log(msg, "SCRIPT"),
+                    cancellationToken);
 
-                // Use the returned scriptOutput instead of all console messages to avoid false positives 
-                // from DevTools replaying old console logs.
-                allComplete = _terminalPhrases.Any(phrase =>
-                    scriptResult.Output?.Contains(phrase, StringComparison.OrdinalIgnoreCase) == true);
-
-                if (allComplete)
+                if (DiscordScriptOutputParser.ContainsTerminalPhrase(
+                    scriptResult.Output,
+                    TerminalPhrases))
                 {
                     Log("All quests processed. Sequence complete.", "SYS");
+                    return;
+                }
+
+                if (attempt >= MaxRetries || cancellationToken.IsCancellationRequested)
+                {
                     break;
                 }
 
-                // Not done yet — wait then re-resolve WebSocket URL before
-                // next cycle (Discord can rotate its CDP target mid-session)
-                if (attempt < MAX_RETRIES && !ct.IsCancellationRequested)
-                {
-                    Log($"Still in progress. Next cycle in {RETRY_DELAY_MS / 1000}s...", "SYS");
-                    await Task.Delay(RETRY_DELAY_MS, ct);
-
-                    var recheck = await _discordService.InitConnectionAsync();
-                    if (recheck.success && recheck.wsUrl != wsUrl)
-                    {
-                        wsUrl = recheck.wsUrl;
-                        Log("WebSocket target refreshed.", "SYS");
-                    }
-                }
+                Log($"Still in progress. Next cycle in {RetryDelayMs / 1000}s...", "SYS");
+                await Task.Delay(RetryDelayMs, cancellationToken);
+                wsUrl = await RefreshWebSocketTargetAsync(wsUrl);
             }
 
-            if (!allComplete && attempt >= MAX_RETRIES)
-                Log($"Max retry limit ({MAX_RETRIES}) reached. Check Discord manually.", "WARN");
+            Log($"Max retry limit ({MaxRetries}) reached. Check Discord manually.", "WARN");
         }
 
-        //  UI state
+        private async Task<string> RefreshWebSocketTargetAsync(string currentWsUrl)
+        {
+            var recheck = await _discordService.InitConnectionAsync();
+            if (recheck.success && recheck.wsUrl != currentWsUrl)
+            {
+                Log("WebSocket target refreshed.", "SYS");
+                return recheck.wsUrl;
+            }
+
+            return currentWsUrl;
+        }
 
         private void SetRunningState(bool running)
         {
@@ -293,7 +271,9 @@ namespace DiscordQuestRunner.Pages
             LoadingIndicator.IsRunning = running;
 
             if (StatusBadgeLbl is not null)
+            {
                 StatusBadgeLbl.Text = running ? "RUNNING" : "READY";
+            }
         }
     }
 }
