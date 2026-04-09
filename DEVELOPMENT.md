@@ -86,6 +86,10 @@ DiscordQuestRunner/
 - [x] **STATS ROW**: Implement stats row logic.
 - [x] **Captcha Handling**: Improve workflow around manual/automated captcha interruptions.
 - [x] **Fix Watch Video**: Progress logic refactored to allow unhindered loop and robust CDP payload synchronization.
+- [ ] **Preflight Environment Check**: Run a fast local readiness check before execution to validate Discord process state, CDP availability, active target discovery, and required Webpack store access.
+- [ ] **Auto-Reattach Session Recovery**: Recover cleanly from Discord restarts, websocket drops, or transient CDP disconnects without forcing a full manual restart.
+- [ ] **Adaptive Retry and Jitter Control**: Add bounded retry/backoff and small execution jitter around sensitive automation steps to improve stability and reduce brittle timing patterns.
+- [ ] **Injection Compatibility Self-Test**: Verify injected payload assumptions after each attach and fail fast with precise diagnostics when Discord updates break module hooks or store lookups.
 
 ---
 
